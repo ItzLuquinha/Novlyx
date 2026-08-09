@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 265 45% 3%;
+    --foreground: 260 20% 96%;
+
+    --card: 265 35% 8%;
+    --card-foreground: 260 20% 96%;
+
+    --popover: 265 35% 8%;
+    --popover-foreground: 260 20% 96%;
+
+    --primary: 260 20% 96%;
+    --primary-foreground: 265 45% 3%;
+
+    --secondary: 265 25% 15%;
+    --secondary-foreground: 260 20% 96%;
+
+    --muted: 265 25% 15%;
+    --muted-foreground: 260 10% 68%;
+
+    --accent: 271 76% 61%;
+    --accent-foreground: 265 45% 3%;
+
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 260 20% 96%;
+
+    --border: 265 30% 100% / 0.1;
+    --input: 265 30% 100% / 0.1;
+    --ring: 271 76% 61%;
+
+    --radius: 0.5rem;
+
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, sans-serif;
+    --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, sans-serif;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-novlyx-black text-novlyx-white antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  ::selection {
+    @apply bg-novlyx-gold/30 text-novlyx-white;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .fileira-scroll {
+    scroll-snap-type: x proximity;
+  }
+
+  .fileira-scroll > * {
+    scroll-snap-align: start;
+  }
+
+  .fade-mask-right {
+    mask-image: linear-gradient(to right, black 92%, transparent 100%);
+  }
+}
