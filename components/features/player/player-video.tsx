@@ -87,7 +87,6 @@ export function PlayerVideo({
     }
   }, []);
   const [pausado, setPausado] = useState(false);
-  pausadoRef.current = pausado;
   const [mutado, setMutado] = useState(false);
   const [tempoSegundos, setTempoSegundos] = useState(0);
   const [feedback, setFeedback] = useState<FeedbackTipo>(null);
@@ -97,6 +96,8 @@ export function PlayerVideo({
   const tempoRef = useRef(0);
   const pausadoRef = useRef(false);
   const feedbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  pausadoRef.current = pausado;
 
   // Restaura progresso salvo (URL tem prioridade para T/E)
   useEffect(() => {
