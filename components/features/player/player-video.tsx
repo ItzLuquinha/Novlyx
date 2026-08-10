@@ -163,21 +163,25 @@ export function PlayerVideo({
     [conteudo, ehSerie, salvar]
   );
 
-  // Conta tempo enquanto assiste (página visível e não pausado localmente)
+  // Conta tempo só quando "tocando" (não pausado) e a aba está em foco
   useEffect(() => {
     if (!aceitouAviso) return;
     const id = setInterval(() => {
-      if (document.hidden || pausado) return;
+      if (pausado) return;
+      if (document.hidden) return;
+      // sem foco na janela = provavelmente não está assistindo
+      if (typeof document.hasFocus === "function" && !document.hasFocus()) return;
       tempoRef.current += 1;
       setTempoSegundos(tempoRef.current);
     }, 1000);
     return () => clearInterval(id);
   }, [aceitouAviso, pausado]);
 
-  // Salva a cada 15s e ao sair
+  // Salva periodicamente e ao sair (não avança tempo se pausado)
   useEffect(() => {
     if (!aceitouAviso) return;
     const tick = setInterval(() => {
+      if (pausado || document.hidden) return;
       persistir(tempoRef.current, season, episode);
     }, 5_000);
 
@@ -194,7 +198,7 @@ export function PlayerVideo({
       window.removeEventListener("beforeunload", aoSair);
       persistir(tempoRef.current, season, episode);
     };
-  }, [aceitouAviso, season, episode, persistir]);
+  }, [aceitouAviso, season, episode, persistir, pausado]);
 
   // Atalhos de teclado
   useEffect(() => {
@@ -400,7 +404,7 @@ export function PlayerVideo({
               className="absolute inset-0 h-full w-full border-0"
               allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
               allowFullScreen
-              referrerPolicy="no-referrer"
+              referrerPolicy="strict-origin-when-cross-origin"
               loading="lazy"
             />
           ) : (
@@ -408,6 +412,11 @@ export function PlayerVideo({
               Fonte de vídeo inválida.
             </div>
           )}
+            {pausado && (
+              <div className="pointer-events-none absolute left-3 top-3 z-10 rounded-full bg-black/70 px-3 py-1 text-xs text-white/80 backdrop-blur">
+                Progresso pausado · Espaço para retomar
+              </div>
+            )}
             {/* HUD de atalho */}
             {feedback && (
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center">

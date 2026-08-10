@@ -16,6 +16,7 @@ import { formatarTimestamp } from "@/utils/tempo-assistido";
 export function HistoricoClient() {
   const [itens, setItens] = useState<ItemHistorico[]>([]);
   const [carregado, setCarregado] = useState(false);
+  const [confirmar, setConfirmar] = useState(false);
 
   const recarregar = useCallback(() => {
     setItens(getHistorico());
@@ -30,28 +31,49 @@ export function HistoricoClient() {
 
   return (
     <div className="container py-10 sm:py-14">
-      <div className="mb-8 flex items-start justify-between gap-4">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white sm:text-3xl">Histórico</h1>
           <p className="mt-1 text-sm text-white/50">
             Títulos que você abriu no player neste dispositivo.
           </p>
         </div>
-        {itens.length > 0 && (
+        {itens.length > 0 && !confirmar && (
           <Button
+            type="button"
             variant="ghost"
-            size="sm"
-            className="gap-1.5 text-white/40 hover:text-rose-300"
-            onClick={() => {
-              if (confirm("Apagar todo o histórico?")) {
-                limparHistorico();
-                recarregar();
-              }
-            }}
+            className="min-h-11 w-full gap-1.5 text-white/55 hover:bg-white/10 hover:text-rose-300 sm:w-auto"
+            onClick={() => setConfirmar(true)}
           >
-            <Trash2 className="h-3.5 w-3.5" />
-            Limpar
+            <Trash2 className="h-4 w-4" />
+            Limpar histórico
           </Button>
+        )}
+        {itens.length > 0 && confirmar && (
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+            <p className="text-sm text-white/50">Apagar todo o histórico?</p>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                className="min-h-11 flex-1 bg-rose-600 text-white hover:bg-rose-500 sm:flex-none"
+                onClick={() => {
+                  limparHistorico();
+                  recarregar();
+                  setConfirmar(false);
+                }}
+              >
+                Sim, apagar
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                className="min-h-11 flex-1 text-white/60 sm:flex-none"
+                onClick={() => setConfirmar(false)}
+              >
+                Cancelar
+              </Button>
+            </div>
+          </div>
         )}
       </div>
 

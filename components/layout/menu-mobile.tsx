@@ -29,6 +29,13 @@ export function MenuMobile() {
         <DialogTitle className="sr-only">Menu de navegacao</DialogTitle>
         <LogoNovlyx tamanho="sm" className="mb-6" />
         <nav className="flex flex-col gap-1">
+          <Link
+            href="/busca"
+            onClick={() => setAberto(false)}
+            className="rounded-md px-3 py-2.5 text-sm font-medium text-novlyx-gray-light hover:bg-white/5 hover:text-novlyx-white"
+          >
+            Buscar
+          </Link>
           {LINKS_NAVEGACAO.map((link) => {
             const ativo =
               link.href === "/"

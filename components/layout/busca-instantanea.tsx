@@ -52,7 +52,7 @@ export function BuscaInstantanea() {
     : [];
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative w-full sm:w-auto">
       <div
         className={cn(
           "flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3.5 py-2 transition-all",
@@ -66,7 +66,7 @@ export function BuscaInstantanea() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setAberta(true)}
-          className="w-40 bg-transparent text-sm text-novlyx-white placeholder:text-novlyx-gray-light outline-none transition-all focus:w-64 sm:w-48 sm:focus:w-72"
+          className="w-full min-w-0 flex-1 bg-transparent text-sm text-novlyx-white placeholder:text-novlyx-gray-light outline-none sm:w-48 sm:focus:w-72"
         />
         {query && (
           <button
@@ -87,7 +87,7 @@ export function BuscaInstantanea() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full z-50 mt-3 w-[22rem] overflow-hidden rounded-lg border border-white/10 bg-novlyx-graphite shadow-2xl sm:w-[26rem]"
+            className="absolute left-0 right-0 top-full z-50 mt-3 w-full max-w-[100vw] overflow-hidden rounded-lg border border-white/10 bg-novlyx-graphite shadow-2xl sm:left-auto sm:right-0 sm:w-[26rem]"
           >
             {ehMaite && (
               <Link

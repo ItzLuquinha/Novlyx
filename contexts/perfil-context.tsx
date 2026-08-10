@@ -1,8 +1,10 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { Perfil } from "@/types";
 import { gerarPosterPlaceholder } from "@/utils/placeholder";
+
+const CHAVE = "novlyx-perfil";
 
 const PERFIL_PADRAO: Perfil = {
   id: "perfil-1",
@@ -19,7 +21,28 @@ interface PerfilContextType {
 const PerfilContext = createContext<PerfilContextType | undefined>(undefined);
 
 export function PerfilProvider({ children }: { children: React.ReactNode }) {
-  const [perfil, definirPerfil] = useState<Perfil>(PERFIL_PADRAO);
+  const [perfil, setPerfil] = useState<Perfil>(PERFIL_PADRAO);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(CHAVE);
+      if (raw) {
+        const parsed = JSON.parse(raw) as Perfil;
+        if (parsed?.nome) setPerfil({ ...PERFIL_PADRAO, ...parsed });
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  function definirPerfil(novo: Perfil) {
+    setPerfil(novo);
+    try {
+      localStorage.setItem(CHAVE, JSON.stringify(novo));
+    } catch {
+      /* ignore */
+    }
+  }
 
   return (
     <PerfilContext.Provider value={{ perfil, definirPerfil }}>
