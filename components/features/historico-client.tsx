@@ -58,7 +58,7 @@ export function HistoricoClient() {
                 className="min-h-11 flex-1 bg-rose-600 text-white hover:bg-rose-500 sm:flex-none"
                 onClick={() => {
                   limparHistorico();
-                  recarregar();
+                  setItens([]);
                   setConfirmar(false);
                 }}
               >

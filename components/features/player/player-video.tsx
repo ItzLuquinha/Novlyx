@@ -87,6 +87,7 @@ export function PlayerVideo({
     }
   }, []);
   const [pausado, setPausado] = useState(false);
+  pausadoRef.current = pausado;
   const [mutado, setMutado] = useState(false);
   const [tempoSegundos, setTempoSegundos] = useState(0);
   const [feedback, setFeedback] = useState<FeedbackTipo>(null);
@@ -94,6 +95,7 @@ export function PlayerVideo({
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const tempoRef = useRef(0);
+  const pausadoRef = useRef(false);
   const feedbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Restaura progresso salvo (URL tem prioridade para T/E)
@@ -134,7 +136,7 @@ export function PlayerVideo({
   }, []);
 
   const persistir = useCallback(
-    (tempo: number, s: number, e: number) => {
+    (tempo: number, s: number, e: number, opts?: { historico?: boolean; forcarHistorico?: boolean }) => {
       const duracaoEstimada = ehSerie
         ? 45 * 60
         : (conteudo.duracaoMinutos ?? 120) * 60;
@@ -150,15 +152,20 @@ export function PlayerVideo({
         tempoAtualSegundos: Math.max(0, Math.floor(tempo)),
         duracaoTotalSegundos: duracaoEstimada,
       });
-      registrarHistorico({
-        conteudoId: conteudo.id,
-        categoria: conteudo.categoria,
-        titulo: conteudo.titulo,
-        posterUrl: conteudo.posterUrl,
-        temporadaNumero: ehSerie ? s : undefined,
-        episodioNumero: ehSerie ? e : undefined,
-        tempoAtualSegundos: Math.max(0, Math.floor(tempo)),
-      });
+      if (opts?.historico !== false) {
+        registrarHistorico(
+          {
+            conteudoId: conteudo.id,
+            categoria: conteudo.categoria,
+            titulo: conteudo.titulo,
+            posterUrl: conteudo.posterUrl,
+            temporadaNumero: ehSerie ? s : undefined,
+            episodioNumero: ehSerie ? e : undefined,
+            tempoAtualSegundos: Math.max(0, Math.floor(tempo)),
+          },
+          { forcar: opts?.forcarHistorico }
+        );
+      }
     },
     [conteudo, ehSerie, salvar]
   );
@@ -177,28 +184,42 @@ export function PlayerVideo({
     return () => clearInterval(id);
   }, [aceitouAviso, pausado]);
 
-  // Salva periodicamente e ao sair (não avança tempo se pausado)
+  // Progresso a cada 5s; histórico no máx. a cada 60s (e no unmount)
   useEffect(() => {
     if (!aceitouAviso) return;
+    let tickHist = 0;
     const tick = setInterval(() => {
-      if (pausado || document.hidden) return;
-      persistir(tempoRef.current, season, episode);
+      if (pausadoRef.current || document.hidden) return;
+      tickHist += 5;
+      const comHistorico = tickHist >= 60;
+      if (comHistorico) tickHist = 0;
+      persistir(tempoRef.current, season, episode, {
+        historico: comHistorico,
+      });
     }, 5_000);
 
     function aoSair() {
-      persistir(tempoRef.current, season, episode);
+      persistir(tempoRef.current, season, episode, {
+        historico: true,
+        forcarHistorico: true,
+      });
     }
     window.addEventListener("beforeunload", aoSair);
-    document.addEventListener("visibilitychange", () => {
+    const onVis = () => {
       if (document.hidden) aoSair();
-    });
+    };
+    document.addEventListener("visibilitychange", onVis);
 
     return () => {
       clearInterval(tick);
       window.removeEventListener("beforeunload", aoSair);
-      persistir(tempoRef.current, season, episode);
+      document.removeEventListener("visibilitychange", onVis);
+      persistir(tempoRef.current, season, episode, {
+        historico: true,
+        forcarHistorico: true,
+      });
     };
-  }, [aceitouAviso, season, episode, persistir, pausado]);
+  }, [aceitouAviso, season, episode, persistir]);
 
   // Atalhos de teclado
   useEffect(() => {

@@ -18,14 +18,25 @@ function ler(): ItemHistorico[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(CHAVE);
-    return raw ? (JSON.parse(raw) as ItemHistorico[]) : [];
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as ItemHistorico[]) : [];
   } catch {
     return [];
   }
 }
 
 function gravar(itens: ItemHistorico[]) {
-  localStorage.setItem(CHAVE, JSON.stringify(itens.slice(0, 100)));
+  if (typeof window === "undefined") return;
+  try {
+    if (itens.length === 0) {
+      localStorage.removeItem(CHAVE);
+    } else {
+      localStorage.setItem(CHAVE, JSON.stringify(itens.slice(0, 100)));
+    }
+  } catch {
+    /* quota / private mode */
+  }
   window.dispatchEvent(new CustomEvent(EVENTO_HISTORICO));
 }
 
@@ -36,12 +47,33 @@ export function getHistorico(): ItemHistorico[] {
   );
 }
 
+/**
+ * Registra ou atualiza um título no histórico.
+ * Não grava se tempo < 10s.
+ * Atualiza o mesmo título no máximo a cada ~20s (evita reescrever o tempo todo).
+ */
 export function registrarHistorico(
-  item: Omit<ItemHistorico, "assistidoEm">
+  item: Omit<ItemHistorico, "assistidoEm">,
+  opcoes?: { forcar?: boolean }
 ) {
   if (typeof window === "undefined") return;
   if (item.tempoAtualSegundos < 10) return;
-  const outros = ler().filter((i) => i.conteudoId !== item.conteudoId);
+
+  const atual = ler();
+  const existente = atual.find((i) => i.conteudoId === item.conteudoId);
+
+  if (existente && !opcoes?.forcar) {
+    const idadeMs =
+      Date.now() - new Date(existente.assistidoEm).getTime();
+    const tempoSubiu =
+      item.tempoAtualSegundos - (existente.tempoAtualSegundos || 0);
+    // Evita spam: só atualiza se passou 20s ou o progresso subiu bastante
+    if (idadeMs < 20_000 && tempoSubiu < 15) {
+      return;
+    }
+  }
+
+  const outros = atual.filter((i) => i.conteudoId !== item.conteudoId);
   gravar([
     { ...item, assistidoEm: new Date().toISOString() },
     ...outros,
@@ -50,6 +82,13 @@ export function registrarHistorico(
 
 export function limparHistorico() {
   if (typeof window === "undefined") return;
-  localStorage.removeItem(CHAVE);
+  try {
+    localStorage.removeItem(CHAVE);
+    // garante vazio mesmo se removeItem falhar parcialmente
+    localStorage.setItem(CHAVE, "[]");
+    localStorage.removeItem(CHAVE);
+  } catch {
+    /* ignore */
+  }
   window.dispatchEvent(new CustomEvent(EVENTO_HISTORICO));
 }
