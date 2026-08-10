@@ -1,59 +1,55 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ConteudoResumo } from "@/types";
+import Link from "next/link";
+import { FileiraConteudo } from "@/components/shared/fileira-conteudo";
 import {
-  EVENTO_HISTORICO,
   getHistorico,
   ItemHistorico,
 } from "@/services/historico.service";
+import { getContinuarAssistindo } from "@/services/continuar-assistindo.service";
 import { getRecomendacoesPorHistorico } from "@/services/recomendacoes.service";
-import { FileiraConteudo } from "@/components/shared/fileira-conteudo";
+import { ConteudoResumo } from "@/types";
 
-/** Tempo mínimo assistido para considerar "viu de verdade" (2 min). */
-const MIN_SEGUNDOS = 120;
-
+/**
+ * Pega a base mais recente: continuar assistindo > histórico.
+ * Busca similares por ID e completa com busca por título.
+ */
 export function FileiraPorqueVoceViu() {
-  const [base, setBase] = useState<ItemHistorico | null>(null);
+  const [base, setBase] = useState<{
+    conteudoId: string;
+    categoria: ItemHistorico["categoria"];
+    titulo: string;
+  } | null>(null);
   const [itens, setItens] = useState<ConteudoResumo[]>([]);
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
-    function escolherBase() {
-      const hist = getHistorico();
-      // Prefere o que assistiu mais tempo; senão o mais recente com ≥ 15s
-      const candidatos = hist.filter((h) => h.tempoAtualSegundos >= 15);
-      if (candidatos.length === 0) {
-        setBase(null);
-        setItens([]);
-        setCarregando(false);
-        return;
-      }
-      const comTempo = candidatos.filter(
-        (h) => h.tempoAtualSegundos >= MIN_SEGUNDOS
-      );
-      const escolhido =
-        (comTempo.length > 0 ? comTempo : candidatos).sort(
-          (a, b) => b.tempoAtualSegundos - a.tempoAtualSegundos
-        )[0] ?? candidatos[0]!;
-      setBase(escolhido);
-    }
-
-    escolherBase();
-    window.addEventListener(EVENTO_HISTORICO, escolherBase);
-    return () => window.removeEventListener(EVENTO_HISTORICO, escolherBase);
+    const continuar = getContinuarAssistindo()[0];
+    const hist = getHistorico()[0];
+    const origem = continuar
+      ? {
+          conteudoId: continuar.conteudoId,
+          categoria: continuar.categoria,
+          titulo: continuar.titulo,
+        }
+      : hist
+        ? {
+            conteudoId: hist.conteudoId,
+            categoria: hist.categoria,
+            titulo: hist.titulo,
+          }
+        : null;
+    setBase(origem);
+    if (!origem) setCarregando(false);
   }, []);
 
   useEffect(() => {
-    if (!base) {
-      setCarregando(false);
-      return;
-    }
-
+    if (!base) return;
     let cancelado = false;
-    setCarregando(true);
 
-    void (async () => {
+    (async () => {
+      setCarregando(true);
       try {
         const lista = await getRecomendacoesPorHistorico(
           {
@@ -61,7 +57,7 @@ export function FileiraPorqueVoceViu() {
             categoria: base.categoria,
             titulo: base.titulo,
           },
-          20
+          24
         );
         if (!cancelado) setItens(lista);
       } catch {
@@ -80,15 +76,24 @@ export function FileiraPorqueVoceViu() {
   if (!carregando && itens.length === 0) return null;
 
   const tituloCurto =
-    base.titulo.length > 36
-      ? `${base.titulo.slice(0, 34)}…`
-      : base.titulo;
+    base.titulo.length > 28 ? `${base.titulo.slice(0, 26)}…` : base.titulo;
 
   return (
-    <FileiraConteudo
-      titulo={`Porque você viu ${tituloCurto}`}
-      itens={itens}
-      carregando={carregando}
-    />
+    <div className="space-y-2">
+      <FileiraConteudo
+        titulo={`Porque você viu ${tituloCurto}`}
+        itens={itens}
+        carregando={carregando}
+      />
+      <p className="px-1 text-[11px] text-white/30">
+        Baseado no que você assistiu por último ·{" "}
+        <Link
+          href={`/conteudo/${base.conteudoId}`}
+          className="text-novlyx-gold/70 hover:underline"
+        >
+          ver original
+        </Link>
+      </p>
+    </div>
   );
 }

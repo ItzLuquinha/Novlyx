@@ -3,266 +3,326 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Dices, Play, RefreshCw, Sparkles } from "lucide-react";
-import { ConteudoResumo } from "@/types";
-import { GENEROS_FILMES } from "@/lib/mock-data/generos";
-import { sortearFilme } from "@/services/sorteio.service";
+import { Dices, Play, RefreshCw, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ImagemPlaceholder as Image } from "@/components/shared/imagem-placeholder";
+import { sortearFilme } from "@/services/sorteio.service";
+import { ConteudoResumo } from "@/types";
 import { cn } from "@/lib/utils";
 
-type Etapa = "genero" | "ano" | "resultado";
-
-const FAIXAS_ANO = [
-  { id: "classicos", label: "Clássicos", min: 1970, max: 1999 },
-  { id: "2000s", label: "Anos 2000", min: 2000, max: 2009 },
-  { id: "2010s", label: "Anos 2010", min: 2010, max: 2019 },
-  { id: "2020s", label: "Anos 2020", min: 2020, max: new Date().getFullYear() },
-  { id: "qualquer", label: "Tanto faz", min: 1970, max: new Date().getFullYear() },
+const GENEROS = [
+  { id: "acao", label: "Ação", emoji: "💥" },
+  { id: "comedia", label: "Comédia", emoji: "😂" },
+  { id: "drama", label: "Drama", emoji: "🎭" },
+  { id: "terror", label: "Terror", emoji: "👻" },
+  { id: "romance", label: "Romance", emoji: "💕" },
+  { id: "ficcao-cientifica", label: "Ficção", emoji: "🚀" },
+  { id: "animacao", label: "Animação", emoji: "🎨" },
+  { id: "aventura", label: "Aventura", emoji: "🗺️" },
+  { id: "suspense", label: "Suspense", emoji: "🕵️" },
+  { id: "documentario", label: "Doc", emoji: "🎥" },
 ];
 
+const CLIMAS = [
+  { id: "leve", label: "Algo leve", desc: "pra relaxar" },
+  { id: "intensa", label: "História intensa", desc: "me prende" },
+  { id: "medo", label: "Quero medo", desc: "terror/suspense" },
+  { id: "chorar", label: "Pode emocionar", desc: "drama/romance" },
+  { id: "surpresa", label: "Tanto faz", desc: "me surpreenda" },
+];
+
+const FAIXAS = [
+  { id: "classicos", label: "Clássicos", anoMin: 1970, anoMax: 1999 },
+  { id: "2000s", label: "Anos 2000", anoMin: 2000, anoMax: 2009 },
+  { id: "2010s", label: "Anos 2010", anoMin: 2010, anoMax: 2019 },
+  { id: "recentes", label: "Recentes", anoMin: 2020, anoMax: new Date().getFullYear() },
+  { id: "qualquer", label: "Qualquer época", anoMin: 1970, anoMax: new Date().getFullYear() },
+];
+
+const DURACOES = [
+  { id: "curto", label: "Curto", desc: "até ~1h30" },
+  { id: "medio", label: "Médio", desc: "~2h" },
+  { id: "longo", label: "Longo", desc: "épico" },
+  { id: "tanto", label: "Tanto faz", desc: "" },
+];
+
+type Passo = "clima" | "genero" | "epoca" | "duracao" | "resultado";
+
 export function SorteioClient() {
-  const [etapa, setEtapa] = useState<Etapa>("genero");
+  const [passo, setPasso] = useState<Passo>("clima");
+  const [clima, setClima] = useState<string | null>(null);
   const [generoId, setGeneroId] = useState<string | null>(null);
-  const [faixa, setFaixa] = useState<(typeof FAIXAS_ANO)[number] | null>(null);
+  const [faixa, setFaixa] = useState<(typeof FAIXAS)[0] | null>(null);
+  const [duracao, setDuracao] = useState<string | null>(null);
   const [resultado, setResultado] = useState<ConteudoResumo | null>(null);
   const [carregando, setCarregando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+
+  function generoPeloClima(c: string): string {
+    if (c === "medo") return "terror";
+    if (c === "chorar") return "drama";
+    if (c === "leve") return "comedia";
+    if (c === "intensa") return "acao";
+    return GENEROS[Math.floor(Math.random() * GENEROS.length)]!.id;
+  }
 
   async function sortear(
-    gId: string,
-    f: { min: number; max: number }
+    g: string,
+    f: (typeof FAIXAS)[0],
+    d: string | null
   ) {
     setCarregando(true);
-    setEtapa("resultado");
+    setErro(null);
+    setResultado(null);
     try {
-      const filme = await sortearFilme({
-        generoId: gId,
-        anoMin: f.min,
-        anoMax: f.max,
+      const item = await sortearFilme({
+        generoId: g,
+        anoMin: f.anoMin,
+        anoMax: f.anoMax,
       });
-      setResultado(filme);
+      if (!item) {
+        setErro("Não achei nada com esse filtro. Tenta de novo.");
+        return;
+      }
+      // filtro leve de duração quando a API manda nota/ano só — aceita o item
+      setResultado(item);
+      setPasso("resultado");
+    } catch {
+      setErro("Falha ao sortear. Tenta de novo.");
     } finally {
       setCarregando(false);
     }
   }
 
   function reiniciar() {
-    setEtapa("genero");
+    setPasso("clima");
+    setClima(null);
     setGeneroId(null);
     setFaixa(null);
+    setDuracao(null);
     setResultado(null);
+    setErro(null);
   }
 
-  const generoNome =
-    GENEROS_FILMES.find((g) => g.id === generoId)?.nome ?? generoId;
-
   return (
-    <div className="container max-w-2xl py-10 sm:py-14">
-      <div className="mb-10 text-center">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-novlyx-gold/30 bg-novlyx-gold/10">
-          <Dices className="h-7 w-7 text-novlyx-gold" />
-        </div>
-        <h1 className="text-2xl font-bold text-novlyx-white sm:text-3xl">
-          Me surpreenda
-        </h1>
-        <p className="mt-2 text-sm text-white/50">
-          Escolhe o clima. A gente sorteia o filme.
-        </p>
-      </div>
+    <div className="container max-w-lg py-10 sm:py-14">
+      <p className="text-xs uppercase tracking-[0.2em] text-novlyx-gold/80">
+        Sorteio
+      </p>
+      <h1 className="mt-2 text-3xl font-semibold text-white">Me Surpreenda</h1>
+      <p className="mt-2 text-sm text-white/45">
+        Responde rápido. A gente escolhe um título pra você.
+      </p>
 
-      {/* Steps indicator */}
-      <div className="mb-8 flex items-center justify-center gap-2">
-        {(["genero", "ano", "resultado"] as Etapa[]).map((e, i) => (
-          <div key={e} className="flex items-center gap-2">
-            <span
+      <div className="mt-4 flex gap-1">
+        {(["clima", "genero", "epoca", "duracao", "resultado"] as Passo[]).map(
+          (p, i) => (
+            <div
+              key={p}
               className={cn(
-                "flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium",
-                etapa === e
-                  ? "bg-novlyx-gold text-black"
-                  : i <
-                      (["genero", "ano", "resultado"] as Etapa[]).indexOf(etapa)
-                    ? "bg-novlyx-gold/30 text-novlyx-gold"
-                    : "bg-white/10 text-white/40"
+                "h-1 flex-1 rounded-full",
+                passo === p ||
+                  ["clima", "genero", "epoca", "duracao", "resultado"].indexOf(
+                    passo
+                  ) > i
+                  ? "bg-novlyx-gold"
+                  : "bg-white/10"
               )}
-            >
-              {i + 1}
-            </span>
-            {i < 2 && <span className="h-px w-6 bg-white/15" />}
-          </div>
-        ))}
+            />
+          )
+        )}
       </div>
 
       <AnimatePresence mode="wait">
-        {etapa === "genero" && (
+        {passo === "clima" && (
+          <motion.div
+            key="clima"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="mt-8 space-y-3"
+          >
+            <p className="text-sm text-white/60">Como você está hoje?</p>
+            {CLIMAS.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => {
+                  setClima(c.id);
+                  if (c.id !== "surpresa") {
+                    setGeneroId(generoPeloClima(c.id));
+                  }
+                  setPasso("genero");
+                }}
+                className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-left hover:border-novlyx-gold/40"
+              >
+                <span>
+                  <span className="block text-sm text-white">{c.label}</span>
+                  <span className="text-xs text-white/40">{c.desc}</span>
+                </span>
+                <ChevronRight className="h-4 w-4 text-white/30" />
+              </button>
+            ))}
+          </motion.div>
+        )}
+
+        {passo === "genero" && (
           <motion.div
             key="genero"
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            className="space-y-4"
+            exit={{ opacity: 0 }}
+            className="mt-8"
           >
-            <p className="text-center text-sm text-white/60">
-              Qual gênero você quer?
-            </p>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {GENEROS_FILMES.map((g) => (
+            <p className="mb-3 text-sm text-white/60">Qual gênero?</p>
+            <div className="grid grid-cols-2 gap-2">
+              {GENEROS.map((g) => (
                 <button
                   key={g.id}
                   type="button"
                   onClick={() => {
                     setGeneroId(g.id);
-                    setEtapa("ano");
+                    setPasso("epoca");
                   }}
-                  className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/80 transition-all hover:border-novlyx-gold/40 hover:bg-novlyx-gold/10 hover:text-white"
+                  className={cn(
+                    "rounded-xl border px-3 py-3 text-left text-sm transition-colors",
+                    generoId === g.id
+                      ? "border-novlyx-gold/50 bg-novlyx-gold/10 text-white"
+                      : "border-white/10 bg-white/[0.03] text-white/80 hover:border-white/25"
+                  )}
                 >
-                  {g.nome}
+                  <span className="mr-1.5">{g.emoji}</span>
+                  {g.label}
                 </button>
               ))}
             </div>
           </motion.div>
         )}
 
-        {etapa === "ano" && (
+        {passo === "epoca" && (
           <motion.div
-            key="ano"
-            initial={{ opacity: 0, y: 12 }}
+            key="epoca"
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            className="space-y-4"
+            exit={{ opacity: 0 }}
+            className="mt-8 space-y-2"
           >
-            <p className="text-center text-sm text-white/60">
-              De que época?{" "}
-              <span className="text-novlyx-gold/80">({generoNome})</span>
-            </p>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {FAIXAS_ANO.map((f) => (
-                <button
-                  key={f.id}
-                  type="button"
-                  onClick={() => {
-                    setFaixa(f);
-                    if (generoId) void sortear(generoId, f);
-                  }}
-                  className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-4 text-left transition-all hover:border-novlyx-gold/40 hover:bg-novlyx-gold/10"
-                >
-                  <span className="block text-sm font-medium text-white">
-                    {f.label}
-                  </span>
-                  <span className="text-xs text-white/40">
-                    {f.min} - {f.max}
-                  </span>
-                </button>
-              ))}
-            </div>
-            <button
-              type="button"
-              onClick={() => setEtapa("genero")}
-              className="mx-auto block text-xs text-white/40 hover:text-white/70"
-            >
-              ← voltar
-            </button>
+            <p className="mb-3 text-sm text-white/60">De que época?</p>
+            {FAIXAS.map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => {
+                  setFaixa(f);
+                  setPasso("duracao");
+                }}
+                className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white hover:border-novlyx-gold/40"
+              >
+                {f.label}
+                <ChevronRight className="h-4 w-4 text-white/30" />
+              </button>
+            ))}
           </motion.div>
         )}
 
-        {etapa === "resultado" && (
+        {passo === "duracao" && (
+          <motion.div
+            key="duracao"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="mt-8 space-y-2"
+          >
+            <p className="mb-3 text-sm text-white/60">Quanto tempo você tem?</p>
+            {DURACOES.map((d) => (
+              <button
+                key={d.id}
+                type="button"
+                disabled={carregando || !generoId || !faixa}
+                onClick={() => {
+                  setDuracao(d.id);
+                  if (generoId && faixa) void sortear(generoId, faixa, d.id);
+                }}
+                className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-left hover:border-novlyx-gold/40 disabled:opacity-50"
+              >
+                <span>
+                  <span className="block text-sm text-white">{d.label}</span>
+                  {d.desc && (
+                    <span className="text-xs text-white/40">{d.desc}</span>
+                  )}
+                </span>
+                {carregando ? (
+                  <Dices className="h-4 w-4 animate-spin text-novlyx-gold" />
+                ) : (
+                  <ChevronRight className="h-4 w-4 text-white/30" />
+                )}
+              </button>
+            ))}
+            {erro && <p className="text-sm text-rose-300">{erro}</p>}
+          </motion.div>
+        )}
+
+        {passo === "resultado" && resultado && (
           <motion.div
             key="resultado"
-            initial={{ opacity: 0, scale: 0.96 }}
+            initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            className="space-y-6"
+            className="mt-8 space-y-4"
           >
-            {carregando && (
-              <div className="flex flex-col items-center gap-3 py-16">
-                <Sparkles className="h-8 w-8 animate-pulse text-novlyx-gold" />
-                <p className="text-sm text-white/50">Sorteando seu filme…</p>
+            <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
+              <div className="relative aspect-[2/3] max-h-72 w-full sm:aspect-video sm:max-h-none">
+                <Image
+                  src={resultado.posterUrl}
+                  alt={resultado.titulo}
+                  fill
+                  className="object-cover"
+                  sizes="400px"
+                />
               </div>
-            )}
-
-            {!carregando && !resultado && (
-              <div className="space-y-4 py-12 text-center">
-                <p className="text-white/60">
-                  Não achamos nada com esse filtro. Tenta de novo?
+              <div className="p-4">
+                <h2 className="text-xl font-semibold text-white">
+                  {resultado.titulo}
+                </h2>
+                <p className="mt-1 text-sm text-white/45">
+                  {resultado.ano}
+                  {resultado.nota ? ` · ★ ${resultado.nota}` : ""}
                 </p>
-                <Button onClick={reiniciar} variant="outline" className="gap-2">
-                  <RefreshCw className="h-4 w-4" />
-                  Recomeçar
-                </Button>
               </div>
-            )}
-
-            {!carregando && resultado && (
-              <>
-                <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
-                  <div className="relative aspect-[16/9] w-full">
-                    <Image
-                      src={resultado.bannerUrl || resultado.posterUrl}
-                      alt={resultado.titulo}
-                      fill
-                      className="object-cover"
-                      priority
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-5">
-                      <p className="text-[11px] uppercase tracking-widest text-novlyx-gold/80">
-                        Seu filme
-                      </p>
-                      <h2 className="mt-1 text-xl font-semibold text-white sm:text-2xl">
-                        {resultado.titulo}
-                      </h2>
-                      <p className="mt-1 text-sm text-white/50">
-                        {resultado.ano}
-                        {resultado.nota > 0 ? ` · ★ ${resultado.nota}` : ""}
-                        {resultado.qualidade
-                          ? ` · ${resultado.qualidade}`
-                          : ""}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
-                  <Link href={`/player/${resultado.id}`} className="sm:flex-1">
-                    <Button className="w-full gap-2 bg-novlyx-gold text-black hover:bg-novlyx-gold/90">
-                      <Play className="h-4 w-4 fill-current" />
-                      Assistir agora
-                    </Button>
-                  </Link>
-                  <Link href={`/conteudo/${resultado.id}`} className="sm:flex-1">
-                    <Button
-                      variant="outline"
-                      className="w-full border-white/15 text-white hover:bg-white/5"
-                    >
-                      Ver detalhes
-                    </Button>
-                  </Link>
-                </div>
-
-                <div className="flex justify-center gap-3">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="gap-1.5 text-white/50 hover:text-white"
-                    disabled={!generoId || !faixa}
-                    onClick={() => {
-                      if (generoId && faixa) void sortear(generoId, faixa);
-                    }}
-                  >
-                    <Dices className="h-3.5 w-3.5" />
-                    Outro com mesmo filtro
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="gap-1.5 text-white/50 hover:text-white"
-                    onClick={reiniciar}
-                  >
-                    <RefreshCw className="h-3.5 w-3.5" />
-                    Recomeçar
-                  </Button>
-                </div>
-              </>
-            )}
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Link href={`/player/${resultado.id}`} className="flex-1">
+                <Button className="w-full gap-2 bg-novlyx-gold text-black hover:bg-novlyx-gold/90">
+                  <Play className="h-4 w-4 fill-current" /> Assistir
+                </Button>
+              </Link>
+              <Link href={`/conteudo/${resultado.id}`} className="flex-1">
+                <Button variant="outline" className="w-full border-white/15">
+                  Detalhes
+                </Button>
+              </Link>
+            </div>
+            <div className="flex justify-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-white/50"
+                disabled={!generoId || !faixa}
+                onClick={() => {
+                  if (generoId && faixa)
+                    void sortear(generoId, faixa, duracao);
+                }}
+              >
+                <Dices className="mr-1 h-3.5 w-3.5" /> Outro
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-white/50"
+                onClick={reiniciar}
+              >
+                <RefreshCw className="mr-1 h-3.5 w-3.5" /> Recomeçar
+              </Button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

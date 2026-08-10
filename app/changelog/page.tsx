@@ -11,6 +11,19 @@ export const metadata: Metadata = {
 const ENTRADAS = [
   {
     data: "Agosto 2026",
+    titulo: "Trailers, watch party, sorteio e esportes ao vivo",
+    itens: [
+      "Trailer oficial (YouTube) na página de detalhe, quando a API envia o link",
+      "Porque você viu X mais forte: prioriza Continuar assistindo + similares",
+      "Watch party: link compartilhável com temporada/episódio e banner no player",
+      "Me Surpreenda com mais perguntas (clima, gênero, época, duração)",
+      "Esportes: placar e agenda via ESPN (Brasileirão, Premier, La Liga, Champions, NBA)",
+      "Player com marca de progresso compacta (sem overlay em cima do vídeo)",
+      "Aviso: placar não é transmissão do jogo — use TV ao vivo para canais",
+    ],
+  },
+  {
+    data: "Agosto 2026",
     titulo: "Segurança e endurecimento",
     itens: [
       "Proxy da API com allowlist de caminhos (só rotas de catálogo)",

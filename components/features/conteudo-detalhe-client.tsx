@@ -13,6 +13,8 @@ import { useProgressoConteudo } from "@/hooks/use-continuar-assistindo";
 import { rotuloContinuar, formatarTimestamp } from "@/utils/tempo-assistido";
 import { formatarDuracao, formatarNota } from "@/utils/formatadores";
 import { BotaoCompartilhar } from "@/components/shared/botao-compartilhar";
+import { BotaoTrailer } from "@/components/features/trailer-modal";
+import { BotaoWatchParty } from "@/components/features/watch-party";
 
 export function ConteudoDetalheClient({
   conteudo,
@@ -153,6 +155,7 @@ export function ConteudoDetalheClient({
                 )}
                 {presente ? "Na Minha Lista" : "Minha Lista"}
               </Button>
+              <BotaoTrailer trailerUrl={conteudo.trailerUrl} />
               <BotaoCompartilhar titulo={conteudo.titulo} />
             </div>
           </div>
@@ -166,6 +169,18 @@ export function ConteudoDetalheClient({
             />
           </div>
         )}
+
+        <div className="mt-10 max-w-md">
+          <BotaoWatchParty
+            conteudoId={conteudo.id}
+            titulo={conteudo.titulo}
+            ehSerie={
+              conteudo.categoria === "serie" ||
+              conteudo.categoria === "anime" ||
+              conteudo.categoria === "dorama"
+            }
+          />
+        </div>
 
         {conteudo.semelhantes.length > 0 && (
           <div className="mt-14">
