@@ -8,7 +8,7 @@ import { httpClient } from "@/lib/http-client";
 import { API_HABILITADA, API_ROTAS } from "@/lib/api-config";
 import {
   EmbedItem,
-  EmbedListResponse,
+  EmbedListResponse, EMPTY_EMBED_LIST,
   mapearDetalhe,
   mapearListaPaginada,
 } from "@/lib/adapters/2embed";
@@ -45,7 +45,7 @@ export async function getSeries(
       resultado = { ...resultado, itens: [...resultado.itens].sort((a, b) => b.nota - a.nota) };
     } else if (parametros.ordenarPor === "alfabetica") {
       resultado = { ...resultado, itens: [...resultado.itens].sort((a, b) => a.titulo.localeCompare(b.titulo, "pt-BR")) };
-    } else if (parametros.ordenarPor === "ano") {
+    } else if (parametros.ordenarPor === "recentes") {
       resultado = { ...resultado, itens: [...resultado.itens].sort((a, b) => b.ano - a.ano) };
     }
     return resultado;

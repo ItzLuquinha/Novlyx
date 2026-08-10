@@ -8,7 +8,7 @@ import { httpClient } from "@/lib/http-client";
 import { API_HABILITADA, API_ROTAS } from "@/lib/api-config";
 import {
   EmbedItem,
-  EmbedListResponse,
+  EmbedListResponse, EMPTY_EMBED_LIST,
   mapearDetalhe,
   mapearListaPaginada,
 } from "@/lib/adapters/2embed";
@@ -44,7 +44,7 @@ export async function getDoramas(
     const trending = await httpClient<EmbedListResponse>(
       API_ROTAS.seriesTrending,
       { parametros: { time_window: "week", page: pagina } }
-    ).catch(() => ({ results: [], page: pagina, total_pages: 1, total_results: 0 }));
+    ).catch(() => EMPTY_EMBED_LIST);
 
     let itens = filtrarDoramas(trending.results ?? []);
 
@@ -52,7 +52,7 @@ export async function getDoramas(
       const termo = BUSCAS_DORAMA[(pagina - 1) % BUSCAS_DORAMA.length]!;
       const busca = await httpClient<EmbedListResponse>(API_ROTAS.buscaSeries, {
         parametros: { q: termo, page: 1 },
-      }).catch(() => ({ results: [] as EmbedItem[] } as EmbedListResponse));
+      }).catch(() => EMPTY_EMBED_LIST);
 
       const extra = filtrarDoramas(busca.results ?? []);
       const pool =

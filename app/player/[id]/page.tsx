@@ -14,12 +14,13 @@ export default async function PaginaPlayer({ params }: PaginaPlayerProps) {
   if (!idLimpo) {
     notFound();
   }
+  const idOk: string = idLimpo;
 
   let conteudo = null;
   try {
-    conteudo = await getConteudoPorId(idLimpo);
+    conteudo = await getConteudoPorId(idOk);
   } catch (erro) {
-    console.error("[PaginaPlayer] erro ao buscar", idLimpo, erro);
+    console.error("[PaginaPlayer] erro ao buscar", idOk, erro);
   }
 
   if (!conteudo) {
@@ -29,7 +30,7 @@ export default async function PaginaPlayer({ params }: PaginaPlayerProps) {
   return (
     <main className="min-h-screen bg-black">
       <Suspense fallback={<div className="aspect-video w-full bg-black" />}>
-        <PlayerPageClient conteudo={conteudo} />
+        <PlayerPageClient conteudo={conteudo!} />
       </Suspense>
     </main>
   );

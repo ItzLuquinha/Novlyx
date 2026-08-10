@@ -8,7 +8,7 @@ import { httpClient } from "@/lib/http-client";
 import { API_HABILITADA, API_ROTAS } from "@/lib/api-config";
 import {
   EmbedItem,
-  EmbedListResponse,
+  EmbedListResponse, EMPTY_EMBED_LIST,
   mapearDetalhe,
   mapearListaPaginada,
 } from "@/lib/adapters/2embed";
@@ -44,7 +44,7 @@ export async function getAnimes(
     const trending = await httpClient<EmbedListResponse>(
       API_ROTAS.seriesTrending,
       { parametros: { time_window: "week", page: pagina } }
-    ).catch(() => ({ results: [], page: pagina, total_pages: 1, total_results: 0 }));
+    ).catch(() => EMPTY_EMBED_LIST);
 
     let itens = filtrarAnimes(trending.results ?? []);
 
@@ -52,7 +52,7 @@ export async function getAnimes(
       const termo = BUSCAS_ANIME[(pagina - 1) % BUSCAS_ANIME.length]!;
       const busca = await httpClient<EmbedListResponse>(API_ROTAS.buscaSeries, {
         parametros: { q: termo, page: 1 },
-      }).catch(() => ({ results: [] as EmbedItem[] } as EmbedListResponse));
+      }).catch(() => EMPTY_EMBED_LIST);
 
       const extra = filtrarAnimes(busca.results ?? []);
       const ids = new Set(itens.map((i) => i.imdb_id || i.tmdb_id));

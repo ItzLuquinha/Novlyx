@@ -1,16 +1,10 @@
 /**
  * Fontes de player (ordem de preferência para público BR).
- * 1) EmbedPlayAPI - documentação em PT, costuma ter dublado/legendado
- * 2) Multiembed - vários servidores (inclui fontes com áudio PT quando existe)
- * 3) 2embed - fallback internacional
- *
- * Nenhuma API garante dublagem PT em 100% dos títulos; o usuário pode trocar a fonte no player.
  */
 
 export type FontePlayer = {
   id: string;
   nome: string;
-  /** Rótulo curto na UI */
   badge: string;
   filme: (id: string) => string;
   serie: (id: string, season: number, episode: number) => string;
@@ -29,7 +23,6 @@ export const FONTES_PLAYER: FontePlayer[] = [
     nome: "Multiembed",
     badge: "Multi",
     filme: (id) => {
-      // IMDb usa video_id=tt...; TMDB numérico precisa &tmdb=1
       if (id.startsWith("tt")) {
         return `https://multiembed.mov/?video_id=${id}`;
       }
@@ -54,7 +47,6 @@ export const FONTES_PLAYER: FontePlayer[] = [
     id: "vidsrc",
     nome: "VidSrc",
     badge: "VS",
-    // ds_lang=pt tenta legenda padrão em português quando disponível
     filme: (id) => {
       const base = id.startsWith("tt")
         ? `https://vidsrc-embed.ru/embed/movie?imdb=${id}`
@@ -70,22 +62,24 @@ export const FONTES_PLAYER: FontePlayer[] = [
   },
 ];
 
+const FONTE_PADRAO: FontePlayer = FONTES_PLAYER[0] as FontePlayer;
+
+function resolverFonte(fonteId: string): FontePlayer {
+  return FONTES_PLAYER.find((f) => f.id === fonteId) ?? FONTE_PADRAO;
+}
+
 export function urlPlayerFilme(
   id: string | number,
-  fonteId: string = FONTES_PLAYER[0]!.id
+  fonteId: string = FONTE_PADRAO.id
 ): string {
-  const fonte =
-    FONTES_PLAYER.find((f) => f.id === fonteId) ?? FONTES_PLAYER[0]!;
-  return fonte.filme(String(id));
+  return resolverFonte(fonteId).filme(String(id));
 }
 
 export function urlPlayerSerie(
   id: string | number,
   season: number,
   episode: number,
-  fonteId: string = FONTES_PLAYER[0]!.id
+  fonteId: string = FONTE_PADRAO.id
 ): string {
-  const fonte =
-    FONTES_PLAYER.find((f) => f.id === fonteId) ?? FONTES_PLAYER[0]!;
-  return fonte.serie(String(id), season, episode);
+  return resolverFonte(fonteId).serie(String(id), season, episode);
 }

@@ -3,7 +3,7 @@ import { CANAIS, EVENTOS_ESPORTIVOS } from "@/lib/mock-data";
 import { httpClient } from "@/lib/http-client";
 import { API_HABILITADA, API_ROTAS } from "@/lib/api-config";
 import {
-  EmbedListResponse,
+  EmbedListResponse, EMPTY_EMBED_LIST,
   mapearResumo,
   temIdValido,
 } from "@/lib/adapters/2embed";
@@ -24,10 +24,10 @@ export async function pesquisarConteudo(query: string): Promise<ResultadoBusca> 
     const [filmesData, seriesData] = await Promise.all([
       httpClient<EmbedListResponse>(API_ROTAS.buscaFilmes, {
         parametros: { q: query, page: 1 },
-      }).catch(() => ({ results: [] } as unknown as EmbedListResponse)),
+      }).catch(() => EMPTY_EMBED_LIST),
       httpClient<EmbedListResponse>(API_ROTAS.buscaSeries, {
         parametros: { q: query, page: 1 },
-      }).catch(() => ({ results: [] } as unknown as EmbedListResponse)),
+      }).catch(() => EMPTY_EMBED_LIST),
     ]);
 
     const filmes = (filmesData.results ?? [])

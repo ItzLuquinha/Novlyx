@@ -17,12 +17,13 @@ export default async function PaginaConteudo({ params }: PaginaConteudoProps) {
   if (!idLimpo) {
     notFound();
   }
+  const idOk: string = idLimpo;
 
   let conteudo = null;
   try {
-    conteudo = await getConteudoPorId(idLimpo);
+    conteudo = await getConteudoPorId(idOk);
   } catch (erro) {
-    console.error("[PaginaConteudo] erro ao buscar", idLimpo, erro);
+    console.error("[PaginaConteudo] erro ao buscar", idOk, erro);
   }
 
   if (!conteudo) {
@@ -33,7 +34,7 @@ export default async function PaginaConteudo({ params }: PaginaConteudoProps) {
     <>
       <Header />
       <main>
-        <ConteudoDetalheClient conteudo={conteudo} />
+        <ConteudoDetalheClient conteudo={conteudo!} />
       </main>
       <Footer />
     </>

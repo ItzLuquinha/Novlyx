@@ -8,7 +8,7 @@ import { httpClient } from "@/lib/http-client";
 import { API_HABILITADA, API_ROTAS } from "@/lib/api-config";
 import {
   EmbedItem,
-  EmbedListResponse,
+  EmbedListResponse, EMPTY_EMBED_LIST,
   mapearDetalhe,
   mapearListaPaginada,
 } from "@/lib/adapters/2embed";

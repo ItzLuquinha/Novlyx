@@ -6,7 +6,7 @@ import { getSeriePorId } from "./series.service";
 import { getAnimePorId } from "./animes.service";
 import { getDoramaPorId } from "./doramas.service";
 import {
-  EmbedListResponse,
+  EmbedListResponse, EMPTY_EMBED_LIST,
   mapearListaPaginada,
 } from "@/lib/adapters/2embed";
 
@@ -165,10 +165,10 @@ export async function getTrendingBR(limite = 20): Promise<ConteudoResumo[]> {
     const [busca, trending] = await Promise.all([
       httpClient<EmbedListResponse>(API_ROTAS.buscaFilmes, {
         parametros: { q: termo, page: 1 },
-      }).catch(() => ({ results: [] } as EmbedListResponse)),
+      }).catch(() => EMPTY_EMBED_LIST),
       httpClient<EmbedListResponse>(API_ROTAS.filmesTrending, {
         parametros: { time_window: "week", page: 1 },
-      }).catch(() => ({ results: [] } as EmbedListResponse)),
+      }).catch(() => EMPTY_EMBED_LIST),
     ]);
     const a = mapearListaPaginada(busca as EmbedListResponse, "filme").itens;
     const b = mapearListaPaginada(trending as EmbedListResponse, "filme").itens;

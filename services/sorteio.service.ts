@@ -75,16 +75,5 @@ export async function sortearFilme(opcoes: {
     return pool[Math.floor(Math.random() * pool.length)] ?? null;
   }
 
-  const pool = CATALOGO_FILMES.filter((i) => {
-    const noGenero =
-      !generoId ||
-      i.generos.some((g) => g.id === generoId) ||
-      i.generos.some((g) =>
-        g.nome.toLowerCase().includes(query.toLowerCase().slice(0, 4))
-      );
-    const noAno = i.ano >= anoMin && i.ano <= anoMax;
-    return noGenero && noAno;
-  });
-  const base = pool.length > 0 ? pool : CATALOGO_FILMES;
-  return base[Math.floor(Math.random() * base.length)] ?? null;
+  return null;
 }

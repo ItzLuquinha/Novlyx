@@ -37,7 +37,9 @@ function montarUrl(
 
   // Junta query params (caminho pode já ter ?imdb_id=...)
   const params = new URLSearchParams();
-  const [pathPart, existingQuery] = caminho.split("?");
+  const partes = caminho.split("?");
+  const pathPart = partes[0] ?? caminho;
+  const existingQuery = partes[1];
   if (existingQuery) {
     new URLSearchParams(existingQuery).forEach((v, k) => params.set(k, v));
   }

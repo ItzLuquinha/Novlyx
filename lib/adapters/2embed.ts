@@ -50,6 +50,13 @@ export interface EmbedListResponse {
   results: EmbedItem[];
 }
 
+export const EMPTY_EMBED_LIST: EmbedListResponse = {
+  page: 1,
+  total_results: 0,
+  total_pages: 1,
+  results: [],
+};
+
 function slugGenero(nome: string): string {
   return nome
     .toLowerCase()

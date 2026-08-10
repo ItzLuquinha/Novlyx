@@ -2,7 +2,7 @@ import { CategoriaConteudo, ConteudoResumo } from "@/types";
 import { httpClient } from "@/lib/http-client";
 import { API_HABILITADA, API_ROTAS } from "@/lib/api-config";
 import {
-  EmbedListResponse,
+  EmbedListResponse, EMPTY_EMBED_LIST,
   mapearListaPaginada,
 } from "@/lib/adapters/2embed";
 
