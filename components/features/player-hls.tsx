@@ -44,6 +44,8 @@ export function PlayerHls({ src, titulo }: PlayerHlsProps) {
       return;
     }
 
+    // Após o guard, TypeScript trata como string
+    const url: string = srcSeguro;
     const video = videoRef.current;
     if (!video) return;
 
@@ -55,7 +57,7 @@ export function PlayerHls({ src, titulo }: PlayerHlsProps) {
     async function iniciar() {
       try {
         if (video!.canPlayType("application/vnd.apple.mpegurl")) {
-          video!.src = srcSeguro;
+          video!.src = url;
           await video!.play().catch(() => undefined);
           if (!cancelado) setCarregando(false);
           return;
@@ -68,7 +70,7 @@ export function PlayerHls({ src, titulo }: PlayerHlsProps) {
             lowLatencyMode: true,
           });
           hls = instance;
-          instance.loadSource(srcSeguro!);
+          instance.loadSource(url);
           instance.attachMedia(video!);
           instance.on(Hls.Events.MANIFEST_PARSED, () => {
             video!
