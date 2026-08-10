@@ -91,13 +91,26 @@ export function PlayerVideo({
   const [tempoSegundos, setTempoSegundos] = useState(0);
   const [feedback, setFeedback] = useState<FeedbackTipo>(null);
   const [restaurado, setRestaurado] = useState(false);
+  /** Contagem só com interação recente (embeds cross-origin não avisam pause) */
+  const [contando, setContando] = useState(false);
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const tempoRef = useRef(0);
   const pausadoRef = useRef(false);
+  const contandoRef = useRef(false);
+  const ultimaInteracaoRef = useRef(Date.now());
   const feedbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   pausadoRef.current = pausado;
+  contandoRef.current = contando;
+
+  const marcarInteracao = useCallback(() => {
+    ultimaInteracaoRef.current = Date.now();
+    if (!pausadoRef.current) {
+      setContando(true);
+      contandoRef.current = true;
+    }
+  }, []);
 
   // Restaura progresso salvo (URL tem prioridade para T/E)
   useEffect(() => {
@@ -111,8 +124,8 @@ export function PlayerVideo({
       setEpisode(progresso.episodioNumero);
     }
     if (progresso.tempoAtualSegundos > 0) {
-      setTempoSegundos(progresso.tempoAtualSegundos);
       tempoRef.current = progresso.tempoAtualSegundos;
+      setTempoSegundos(progresso.tempoAtualSegundos);
     }
     setRestaurado(true);
   }, [progresso, restaurado, temporadaIdInicial, episodioIdInicial]);
@@ -126,7 +139,6 @@ export function PlayerVideo({
   const enviarAoPlayer = useCallback((comando: string, valor?: number) => {
     const win = iframeRef.current?.contentWindow;
     if (!win) return;
-    // Alguns embeds ignoram; tentamos comandos comuns
     try {
       win.postMessage({ event: comando, value: valor }, "*");
       win.postMessage({ type: comando, value: valor }, "*");
@@ -137,7 +149,12 @@ export function PlayerVideo({
   }, []);
 
   const persistir = useCallback(
-    (tempo: number, s: number, e: number, opts?: { historico?: boolean; forcarHistorico?: boolean }) => {
+    (
+      tempo: number,
+      s: number,
+      e: number,
+      opts?: { historico?: boolean; forcarHistorico?: boolean }
+    ) => {
       const duracaoEstimada = ehSerie
         ? 45 * 60
         : (conteudo.duracaoMinutos ?? 120) * 60;
@@ -171,26 +188,125 @@ export function PlayerVideo({
     [conteudo, ehSerie, salvar]
   );
 
-  // Conta tempo só quando "tocando" (não pausado) e a aba está em foco
+  // Ao aceitar o aviso, começa a contar; interações mantêm vivo
+  useEffect(() => {
+    if (!aceitouAviso) return;
+    marcarInteracao();
+  }, [aceitouAviso, marcarInteracao]);
+
+  // Idle: 45s sem mouse/tecla/toque → para de contar
+  useEffect(() => {
+    if (!aceitouAviso) return;
+
+    function onAtividade() {
+      marcarInteracao();
+    }
+
+    const opts: AddEventListenerOptions = { passive: true };
+    window.addEventListener("mousemove", onAtividade, opts);
+    window.addEventListener("mousedown", onAtividade, opts);
+    window.addEventListener("keydown", onAtividade, opts);
+    window.addEventListener("touchstart", onAtividade, opts);
+    window.addEventListener("scroll", onAtividade, opts);
+
+    const idleCheck = setInterval(() => {
+      const idleMs = Date.now() - ultimaInteracaoRef.current;
+      if (idleMs > 45_000 && contandoRef.current) {
+        contandoRef.current = false;
+        setContando(false);
+      }
+    }, 2_000);
+
+    return () => {
+      window.removeEventListener("mousemove", onAtividade);
+      window.removeEventListener("mousedown", onAtividade);
+      window.removeEventListener("keydown", onAtividade);
+      window.removeEventListener("touchstart", onAtividade);
+      window.removeEventListener("scroll", onAtividade);
+      clearInterval(idleCheck);
+    };
+  }, [aceitouAviso, marcarInteracao]);
+
+  // postMessage de embeds (quando o provedor envia play/pause)
+  useEffect(() => {
+    if (!aceitouAviso) return;
+
+    function onMessage(ev: MessageEvent) {
+      let data: unknown = ev.data;
+      if (typeof data === "string") {
+        try {
+          data = JSON.parse(data);
+        } catch {
+          data = { event: data };
+        }
+      }
+      if (!data || typeof data !== "object") return;
+      const d = data as Record<string, unknown>;
+      const evName = String(
+        d.event ?? d.type ?? d.action ?? d.method ?? ""
+      ).toLowerCase();
+      if (!evName) return;
+
+      if (
+        /pause|paused|stop|ended|finish/.test(evName) ||
+        d.paused === true ||
+        d.playing === false
+      ) {
+        setPausado(true);
+        pausadoRef.current = true;
+        setContando(false);
+        contandoRef.current = false;
+      }
+      if (
+        /play|playing|start|resume/.test(evName) ||
+        d.paused === false ||
+        d.playing === true
+      ) {
+        setPausado(false);
+        pausadoRef.current = false;
+        marcarInteracao();
+      }
+      // timeupdate numérico (raro, mas útil)
+      const t =
+        typeof d.currentTime === "number"
+          ? d.currentTime
+          : typeof d.seconds === "number"
+            ? d.seconds
+            : null;
+      if (t != null && t >= 0 && t < 3600 * 8) {
+        tempoRef.current = Math.floor(t);
+        setTempoSegundos(tempoRef.current);
+      }
+    }
+
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, [aceitouAviso, marcarInteracao]);
+
+  // Tick de progresso: só se contando + não pausado + aba visível + foco
   useEffect(() => {
     if (!aceitouAviso) return;
     const id = setInterval(() => {
-      if (pausado) return;
+      if (pausadoRef.current) return;
+      if (!contandoRef.current) return;
       if (document.hidden) return;
-      // sem foco na janela = provavelmente não está assistindo
-      if (typeof document.hasFocus === "function" && !document.hasFocus()) return;
+      if (typeof document.hasFocus === "function" && !document.hasFocus()) {
+        contandoRef.current = false;
+        setContando(false);
+        return;
+      }
       tempoRef.current += 1;
       setTempoSegundos(tempoRef.current);
     }, 1000);
     return () => clearInterval(id);
-  }, [aceitouAviso, pausado]);
+  }, [aceitouAviso]);
 
-  // Progresso a cada 5s; histórico no máx. a cada 60s (e no unmount)
+  // Persistência
   useEffect(() => {
     if (!aceitouAviso) return;
     let tickHist = 0;
     const tick = setInterval(() => {
-      if (pausadoRef.current || document.hidden) return;
+      if (pausadoRef.current || document.hidden || !contandoRef.current) return;
       tickHist += 5;
       const comHistorico = tickHist >= 60;
       if (comHistorico) tickHist = 0;
@@ -207,7 +323,11 @@ export function PlayerVideo({
     }
     window.addEventListener("beforeunload", aoSair);
     const onVis = () => {
-      if (document.hidden) aoSair();
+      if (document.hidden) {
+        setContando(false);
+        contandoRef.current = false;
+        aoSair();
+      }
     };
     document.addEventListener("visibilitychange", onVis);
 
@@ -222,7 +342,7 @@ export function PlayerVideo({
     };
   }, [aceitouAviso, season, episode, persistir]);
 
-  // Atalhos de teclado
+    // Atalhos de teclado
   useEffect(() => {
     if (!aceitouAviso) return;
 
@@ -434,9 +554,11 @@ export function PlayerVideo({
               Fonte de vídeo inválida.
             </div>
           )}
-            {pausado && (
-              <div className="pointer-events-none absolute left-3 top-3 z-10 rounded-full bg-black/70 px-3 py-1 text-xs text-white/80 backdrop-blur">
-                Progresso pausado · Espaço para retomar
+            {aceitouAviso && (!contando || pausado) && (
+              <div className="pointer-events-none absolute left-3 top-3 z-10 max-w-[90%] rounded-full bg-black/75 px-3 py-1.5 text-xs text-white/85 backdrop-blur">
+                {pausado
+                  ? "Progresso pausado · Espaço para retomar"
+                  : "Progresso parado (idle) · mexa o mouse ou toque para continuar"}
               </div>
             )}
             {/* HUD de atalho */}
@@ -467,6 +589,52 @@ export function PlayerVideo({
       </div>
 
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5">
+          <div>
+            <p className="text-xs text-white/45">Tempo estimado (sessão)</p>
+            <p className="text-sm font-medium tabular-nums text-white">
+              {formatarTempo(tempoSegundos)}
+            </p>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant={contando && !pausado ? "default" : "outline"}
+            className={cn(
+              "min-h-10 gap-1.5 text-xs",
+              contando && !pausado
+                ? "bg-novlyx-gold text-black hover:bg-novlyx-gold/90"
+                : "border-white/15 text-white/70"
+            )}
+            onClick={() => {
+              if (contando && !pausado) {
+                setPausado(true);
+                pausadoRef.current = true;
+                setContando(false);
+                contandoRef.current = false;
+                enviarAoPlayer("pause");
+                mostrarFeedback("pause");
+              } else {
+                setPausado(false);
+                pausadoRef.current = false;
+                marcarInteracao();
+                enviarAoPlayer("play");
+                mostrarFeedback("play");
+              }
+            }}
+          >
+            {contando && !pausado ? (
+              <>
+                <Pause className="h-3.5 w-3.5" /> Pausar progresso
+              </>
+            ) : (
+              <>
+                <Play className="h-3.5 w-3.5" /> Contar progresso
+              </>
+            )}
+          </Button>
+        </div>
+
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs text-white/50">Fonte:</span>
           {FONTES_PLAYER.map((fonte) => (
