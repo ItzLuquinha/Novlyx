@@ -9,6 +9,8 @@ const PLAYLIST_BR =
 const PLAYLIST_FULL =
   "https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8";
 
+const URL_HTTP = new RegExp("^https?:\\/\\/", "i");
+
 function slug(s: string): string {
   return s
     .toLowerCase()
@@ -52,7 +54,7 @@ function parseM3U(text: string, soBrasil = false): Canal[] {
 
     if (line.startsWith("#")) continue;
     if (!meta.nome) continue;
-    if (!/^https?:\/\
+    if (!URL_HTTP.test(line)) {
       meta = {};
       continue;
     }
@@ -75,10 +77,10 @@ function parseM3U(text: string, soBrasil = false): Canal[] {
     const idBase =
       slug(meta.id || meta.nome) || `canal-${canais.length + 1}`;
 
-    let logo =
-      meta.logo && /^https?:\/\
+    const logo =
+      meta.logo && URL_HTTP.test(meta.logo)
         ? meta.logo
-        : `https://placehold.co/300x300/1a1a2e/d4af37/png?text=${encodeURIComponent(meta.nome.slice(0, 10))}`;
+        : `https://placehold.co/300x300/1a1a2e/a855f7/png?text=${encodeURIComponent(meta.nome.slice(0, 10))}`;
 
     canais.push({
       id: `${idBase}-${canais.length}`,
@@ -86,7 +88,7 @@ function parseM3U(text: string, soBrasil = false): Canal[] {
       logoUrl: logo,
       categoriaId: slug(grupo) || "brazil",
       categoriaNome: grupo,
-      descricao: `Free-TV · ${grupo}`,
+      descricao: `Free-TV - ${grupo}`,
       numero: canais.length + 1,
       aoVivo: true,
       streamUrl: line,
@@ -133,7 +135,6 @@ export async function GET() {
       }
     }
 
-    
     canais.forEach((c, i) => {
       c.numero = i + 1;
     });
