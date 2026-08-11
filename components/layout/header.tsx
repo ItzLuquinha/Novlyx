@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LogoNovlyx } from "@/components/shared/logo-novlyx";
 import { NavLinks } from "./nav-links";
@@ -26,11 +25,11 @@ export function Header() {
     <header
       className={cn(
         "fixed inset-x-0 top-0 z-40 transition-colors duration-300",
-        rolado ? "bg-novlyx-black/92" : "bg-transparent"
+        rolado ? "bg-novlyx-black/95" : "bg-transparent"
       )}
     >
       <div className="container flex h-14 items-center justify-between gap-3 lg:h-16">
-        <div className="flex min-w-0 items-center gap-4 lg:gap-8">
+        <div className="flex min-w-0 items-center gap-5 lg:gap-10">
           <MenuMobile />
           <Link href="/" aria-label="Pagina inicial NOVLYX" className="shrink-0">
             <LogoNovlyx tamanho="sm" className="lg:hidden" />
@@ -39,17 +38,31 @@ export function Header() {
           <NavLinks className="hidden md:flex" />
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-2">
+        <div className="flex items-center gap-2">
           <div className="hidden sm:block">
             <BuscaInstantanea />
           </div>
           <button
             type="button"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-white/70 hover:bg-white/6 hover:text-white sm:hidden"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-white/60 hover:bg-white/8 hover:text-white sm:hidden"
             aria-label="Pesquisar"
             onClick={() => setBuscaMobileAberta((v) => !v)}
           >
-            <Search className="h-5 w-5" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+            >
+              <circle cx="11" cy="11" r="7" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
           </button>
           <MenuPerfil />
         </div>
