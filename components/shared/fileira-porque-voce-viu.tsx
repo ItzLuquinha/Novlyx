@@ -11,10 +11,6 @@ import { getContinuarAssistindo } from "@/services/continuar-assistindo.service"
 import { getRecomendacoesPorHistorico } from "@/services/recomendacoes.service";
 import { ConteudoResumo } from "@/types";
 
-/**
- * Pega a base mais recente: continuar assistindo > histórico.
- * Busca similares por ID e completa com busca por título.
- */
 export function FileiraPorqueVoceViu() {
   const [base, setBase] = useState<{
     conteudoId: string;
@@ -89,7 +85,7 @@ export function FileiraPorqueVoceViu() {
         Baseado no que você assistiu por último ·{" "}
         <Link
           href={`/conteudo/${base.conteudoId}`}
-          className="text-novlyx-gold/70 hover:underline"
+          className="text-novlyx-accent/70 hover:underline"
         >
           ver original
         </Link>

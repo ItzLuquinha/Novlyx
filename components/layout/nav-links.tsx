@@ -4,37 +4,40 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-const LINKS_NAVEGACAO = [
-  { href: "/", label: "Inicio" },
+export const LINKS_PRINCIPAIS = [
   { href: "/filmes", label: "Filmes" },
-  { href: "/sorteio", label: "Surpresa" },
   { href: "/series", label: "Series" },
   { href: "/animes", label: "Animes" },
   { href: "/doramas", label: "Doramas" },
+];
+
+export const LINKS_EXTRA = [
+  { href: "/", label: "Inicio" },
+  { href: "/sorteio", label: "Surpresa" },
   { href: "/tv-ao-vivo", label: "TV ao Vivo" },
   { href: "/esportes", label: "Esportes" },
   { href: "/minha-lista", label: "Minha Lista" },
   { href: "/historico", label: "Historico" },
 ];
 
+export const LINKS_NAVEGACAO = [...LINKS_PRINCIPAIS, ...LINKS_EXTRA];
+
 export function NavLinks({ className }: { className?: string }) {
   const pathname = usePathname();
 
   return (
-    <nav className={cn("flex items-center gap-1", className)}>
-      {LINKS_NAVEGACAO.map((link) => {
-        const ativo =
-          link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
-
+    <nav className={cn("flex items-center gap-0.5", className)}>
+      {LINKS_PRINCIPAIS.map((link) => {
+        const ativo = pathname.startsWith(link.href);
         return (
           <Link
             key={link.href}
             href={link.href}
             className={cn(
-              "rounded-md px-3 py-2 text-sm font-medium transition-colors",
+              "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
               ativo
-                ? "text-novlyx-gold"
-                : "text-novlyx-gray-light hover:text-novlyx-white"
+                ? "text-white"
+                : "text-white/45 hover:text-white/85"
             )}
           >
             {link.label}
@@ -44,5 +47,3 @@ export function NavLinks({ className }: { className?: string }) {
     </nav>
   );
 }
-
-export { LINKS_NAVEGACAO };

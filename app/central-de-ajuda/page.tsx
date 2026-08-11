@@ -58,7 +58,7 @@ export default function PaginaAjuda() {
           de contato configurado pelo operador do site (substitua pelo seu e-mail
           real antes de publicar em produção):
         </p>
-        <p className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 font-mono text-novlyx-gold">
+        <p className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 font-mono text-novlyx-accent">
           rianbraga718@gmail.com
         </p>
         <p className="text-xs text-white/40">
@@ -69,11 +69,11 @@ export default function PaginaAjuda() {
 
       <Secao titulo="Documentos">
         <p>
-          <a href="/termos" className="text-novlyx-gold hover:underline">
+          <a href="/termos" className="text-novlyx-accent hover:underline">
             Termos de Uso
           </a>
           {" · "}
-          <a href="/privacidade" className="text-novlyx-gold hover:underline">
+          <a href="/privacidade" className="text-novlyx-accent hover:underline">
             Política de Privacidade
           </a>
         </p>

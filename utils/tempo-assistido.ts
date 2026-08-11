@@ -1,4 +1,4 @@
-/** mm:ss ou h:mm:ss no estilo YouTube */
+
 export function formatarTimestamp(segundos: number): string {
   const s = Math.max(0, Math.floor(segundos));
   const h = Math.floor(s / 3600);

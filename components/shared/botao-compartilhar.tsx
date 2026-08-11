@@ -33,7 +33,7 @@ export function BotaoCompartilhar({
         return;
       }
     } catch {
-      /* user cancel */
+      
       return;
     }
 
@@ -42,7 +42,7 @@ export function BotaoCompartilhar({
       setCopiado(true);
       setTimeout(() => setCopiado(false), 2000);
     } catch {
-      /* ignore */
+      
     }
   }
 

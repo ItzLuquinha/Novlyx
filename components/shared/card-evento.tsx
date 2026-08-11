@@ -49,7 +49,7 @@ export function CardEvento({ evento }: { evento: EventoEsportivo }) {
 
           <div className="flex flex-col items-center px-2">
             {evento.status !== "agendado" ? (
-              <span className="text-lg font-bold text-novlyx-gold">
+              <span className="text-lg font-bold text-novlyx-accent">
                 {evento.placarCasa} - {evento.placarVisitante}
               </span>
             ) : (
@@ -79,7 +79,7 @@ export function CardEvento({ evento }: { evento: EventoEsportivo }) {
       </div>
 
       <div className="p-3">
-        <p className="truncate text-xs font-medium text-novlyx-gold">
+        <p className="truncate text-xs font-medium text-novlyx-accent">
           {evento.campeonato}
         </p>
       </div>

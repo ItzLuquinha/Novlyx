@@ -96,13 +96,13 @@ export function MinhaListaClient() {
                   {prog && prog.tempoAtualSegundos >= 15 && (
                     <>
                       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent px-2 pb-2 pt-8">
-                        <p className="text-[10px] font-medium text-novlyx-gold">
+                        <p className="text-[10px] font-medium text-novlyx-accent">
                           {rotuloContinuar(prog)}
                         </p>
                       </div>
                       <div className="absolute inset-x-0 bottom-0 h-1 bg-white/20">
                         <div
-                          className="h-full bg-novlyx-gold"
+                          className="h-full bg-novlyx-accent"
                           style={{ width: `${pct}%` }}
                         />
                       </div>

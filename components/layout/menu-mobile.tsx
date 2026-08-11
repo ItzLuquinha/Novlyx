@@ -50,7 +50,7 @@ export function MenuMobile() {
                 className={cn(
                   "rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
                   ativo
-                    ? "bg-novlyx-gold/10 text-novlyx-gold"
+                    ? "bg-novlyx-accent/10 text-novlyx-accent"
                     : "text-novlyx-gray-light hover:bg-white/5 hover:text-novlyx-white"
                 )}
               >

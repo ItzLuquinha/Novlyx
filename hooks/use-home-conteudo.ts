@@ -27,7 +27,7 @@ export function useHomeConteudo() {
     queryFn: async () => {
       const vazio: ConteudoResumo[] = [];
 
-      // Lote 1 - o essencial (banner + fileiras principais)
+      
       const [destaques, emAlta, populares, lancamentos] = await Promise.all([
         safe(() => getDestaquesBanner(6), vazio),
         safe(() => getEmAlta(20), vazio),
@@ -35,7 +35,7 @@ export function useHomeConteudo() {
         safe(() => getLancamentos(20), vazio),
       ]);
 
-      // Lote 2 - extras
+      
       const [
         trendingBR,
         lancamentosSemana,
@@ -48,7 +48,7 @@ export function useHomeConteudo() {
         safe(() => getAdicionadosRecentemente(20), vazio),
       ]);
 
-      // Lote 3 - gêneros
+      
       const [acao, drama, comedia, terror, romance, ficcaoCientifica, documentarios] =
         await Promise.all([
           safe(() => getPorGenero("acao", 16), vazio),

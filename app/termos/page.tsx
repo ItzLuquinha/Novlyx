@@ -159,7 +159,7 @@ export default function PaginaTermos() {
       <Secao titulo="13. Contato">
         <p>
           Dúvidas sobre estes Termos: utilize a{" "}
-          <a href="/central-de-ajuda" className="text-novlyx-gold hover:underline">
+          <a href="/central-de-ajuda" className="text-novlyx-accent hover:underline">
             Central de Ajuda
           </a>
           .

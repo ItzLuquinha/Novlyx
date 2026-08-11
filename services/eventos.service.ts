@@ -1,10 +1,6 @@
 import { CategoriaEvento, EventoEsportivo, ItemCalendario } from "@/types";
 import { CALENDARIO, CATEGORIAS_EVENTOS, EVENTOS_ESPORTIVOS } from "@/lib/mock-data";
 
-/**
- * Eventos esportivos - dados locais ilustrativos.
- * A API 2embed não oferece agenda esportiva.
- */
 export async function getEventos(filtros?: {
   sport?: string;
   status?: string;

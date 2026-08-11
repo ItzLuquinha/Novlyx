@@ -4,27 +4,28 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-novlyx-gold/60 focus-visible:ring-offset-2 focus-visible:ring-offset-novlyx-black",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-novlyx-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-novlyx-black",
   {
     variants: {
       variant: {
         default:
-          "bg-novlyx-white text-novlyx-black hover:bg-novlyx-white/85 active:scale-[0.98]",
-        gold: "bg-gold-gradient text-novlyx-black font-semibold hover:brightness-110 active:scale-[0.98] shadow-lg shadow-novlyx-gold/10",
+          "bg-novlyx-white text-novlyx-black hover:bg-novlyx-white/90",
+        accent:
+          "bg-novlyx-accent text-white font-semibold hover:bg-novlyx-accent-soft shadow-md shadow-novlyx-accent/15",
         secondary:
-          "bg-white/10 text-novlyx-white backdrop-blur-md hover:bg-white/20 active:scale-[0.98]",
+          "bg-novlyx-graphite-light text-novlyx-white hover:bg-white/12 border border-white/8",
         outline:
-          "border border-white/20 bg-transparent text-novlyx-white hover:bg-white/10",
-        ghost: "bg-transparent text-novlyx-white hover:bg-white/10",
-        link: "bg-transparent text-novlyx-gold underline-offset-4 hover:underline",
+          "border border-white/12 bg-transparent text-novlyx-white hover:bg-white/6",
+        ghost: "bg-transparent text-novlyx-white hover:bg-white/6",
+        link: "bg-transparent text-novlyx-accent underline-offset-4 hover:underline",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
       },
       size: {
-        default: "h-11 px-6 py-2",
-        sm: "h-9 rounded-md px-4 text-xs",
-        lg: "h-12 rounded-md px-8 text-base",
-        icon: "h-10 w-10 rounded-full",
+        default: "h-10 px-5 py-2",
+        sm: "h-8 rounded-md px-3 text-xs",
+        lg: "h-11 rounded-md px-6 text-sm",
+        icon: "h-9 w-9 rounded-md",
       },
     },
     defaultVariants: {

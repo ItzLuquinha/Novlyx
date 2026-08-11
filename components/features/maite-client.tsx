@@ -8,7 +8,7 @@ import { ArrowLeft } from "lucide-react";
 const FRASES = [
   "Eu te amo minha branquinha linda hehe",
   "Você é o easter egg favorito desse app",
-  "Se o universo fosse um catálogo, você seria o destaque 😏",
+  "Se o universo fosse um catálogo, você seria o destaque ",
 ];
 
 export function MaiteClient() {
@@ -36,22 +36,22 @@ export function MaiteClient() {
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#07070c] px-6 text-center">
-      {/* fundo sutil */}
+      {}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-1/3 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-novlyx-gold/10 blur-[100px]" />
+        <div className="absolute left-1/2 top-1/3 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-novlyx-accent/10 blur-[100px]" />
         <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black to-transparent" />
       </div>
 
       <Link
         href="/"
-        className="absolute left-4 top-4 z-20 flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/60 backdrop-blur transition-colors hover:border-white/20 hover:text-white sm:left-8 sm:top-8"
+        className="absolute left-4 top-4 z-20 flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/60  transition-colors hover:border-white/20 hover:text-white sm:left-8 sm:top-8"
       >
         <ArrowLeft className="h-3.5 w-3.5" />
         Voltar
       </Link>
 
       <div className="relative z-10 flex max-w-lg flex-col items-center">
-        {/* coração com pulse */}
+        {}
         <motion.div
           initial={{ scale: 0, opacity: 0 }}
           animate={fase >= 1 ? { scale: 1, opacity: 1 } : {}}
@@ -75,19 +75,19 @@ export function MaiteClient() {
             className="text-6xl sm:text-7xl"
             aria-hidden
           >
-            ♥
+            
           </motion.div>
-          {/* anéis */}
+          {}
           {fase >= 2 && (
             <>
               <motion.span
-                className="absolute inset-0 -m-4 rounded-full border border-novlyx-gold/30"
+                className="absolute inset-0 -m-4 rounded-full border border-novlyx-accent/30"
                 initial={{ scale: 0.6, opacity: 0.6 }}
                 animate={{ scale: 1.8, opacity: 0 }}
                 transition={{ duration: 2.4, repeat: Infinity, ease: "easeOut" }}
               />
               <motion.span
-                className="absolute inset-0 -m-4 rounded-full border border-novlyx-gold/20"
+                className="absolute inset-0 -m-4 rounded-full border border-novlyx-accent/20"
                 initial={{ scale: 0.6, opacity: 0.5 }}
                 animate={{ scale: 2.2, opacity: 0 }}
                 transition={{
@@ -105,7 +105,7 @@ export function MaiteClient() {
           initial={{ opacity: 0, y: 12 }}
           animate={fase >= 2 ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="text-[11px] uppercase tracking-[0.35em] text-novlyx-gold/70"
+          className="text-[11px] uppercase tracking-[0.35em] text-novlyx-accent/70"
         >
           só para você
         </motion.p>
@@ -119,7 +119,7 @@ export function MaiteClient() {
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 exit={{ opacity: 0, y: -12, filter: "blur(6px)" }}
                 transition={{ duration: 0.55 }}
-                className="bg-gradient-to-br from-novlyx-gold via-amber-200 to-novlyx-gold bg-clip-text text-2xl font-semibold leading-snug text-transparent sm:text-3xl"
+                className="bg-gradient-to-br from-novlyx-accent via-amber-200 to-novlyx-accent bg-clip-text text-2xl font-semibold leading-snug text-transparent sm:text-3xl"
               >
                 {FRASES[fraseIdx]}
               </motion.p>

@@ -89,7 +89,7 @@ function idDe(item: EmbedItem): string {
   if (item.tmdb_id != null && Number(item.tmdb_id) > 0) {
     return String(item.tmdb_id);
   }
-  // Fallback estável (só listagem) - detalhe pode falhar sem tt/tmdb
+  
   const nome = (item.title || item.name || "").trim();
   if (nome) {
     const ano = item.year || item.release_date?.slice(0, 4) || "";
@@ -102,7 +102,6 @@ export function temIdValido(item: EmbedItem): boolean {
   return Boolean(idDe(item));
 }
 
-/** Estima se ainda está (ou vai estar) em cinema */
 function detectarEmCinema(item: EmbedItem): boolean {
   const status = (item.status || "").toLowerCase();
   if (
@@ -118,10 +117,10 @@ function detectarEmCinema(item: EmbedItem): boolean {
   if (dataStr) {
     const data = new Date(dataStr);
     const agora = new Date();
-    // Lançou há menos de 45 dias → possivelmente ainda em cartaz
+    
     const diffDias =
       (agora.getTime() - data.getTime()) / (1000 * 60 * 60 * 24);
-    if (diffDias < 0) return true; // futuro
+    if (diffDias < 0) return true; 
     if (diffDias <= 45 && status.includes("released")) return true;
   }
   return false;
@@ -164,7 +163,7 @@ function estimarQualidade(item: EmbedItem, emCinema: boolean): QualidadeVideo {
     const diffDias =
       (Date.now() - data.getTime()) / (1000 * 60 * 60 * 24);
     if (diffDias < 0) return "Cinema";
-    // Lançamento muito recente: costuma ser HD, não FULL HD garantido
+    
     if (diffDias <= 90) return "HD";
   }
 
@@ -223,7 +222,7 @@ export function mapearDetalhe(
 
   const totalTemp = item.number_of_seasons || 0;
   const totalEps = item.number_of_episodes || 0;
-  // Temporadas placeholder para a UI (API não manda episódios detalhados)
+  
   const temporadas =
     totalTemp > 0
       ? Array.from({ length: Math.min(totalTemp, 30) }, (_, i) => {
@@ -277,13 +276,13 @@ export function mapearListaPaginada(
 ): ResultadoPaginado<ConteudoResumo> {
   const brutos = data.results ?? [];
   let validos = brutos.filter((item) => temIdValido(item));
-  // Se a API não mandou imdb/tmdb, não descarta tudo - gera id estável pelo título+ano
+  
   if (validos.length === 0 && brutos.length > 0) {
     validos = brutos;
   }
   let itens = validos.map((item) => mapearResumo(item, categoria)).filter((i) => Boolean(i.id));
 
-  // Prioriza títulos em português (idioma original pt)
+  
   itens = [...itens].sort((a, b) => {
     const aPt = a.idiomaOriginal?.startsWith("pt") ? 1 : 0;
     const bPt = b.idiomaOriginal?.startsWith("pt") ? 1 : 0;

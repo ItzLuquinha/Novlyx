@@ -13,6 +13,6 @@ export interface Canal {
   numero: number;
   aoVivo: boolean;
   programaAtual?: string;
-  /** URL HLS (.m3u8) quando disponível */
+  
   streamUrl?: string;
 }

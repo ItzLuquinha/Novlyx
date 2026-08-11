@@ -77,7 +77,7 @@ export function PlayerVideo({
         setAceitouAviso(true);
       }
     } catch {
-      /* ignore */
+      
     }
   }, []);
 
@@ -147,7 +147,7 @@ export function PlayerVideo({
     [conteudo, ehSerie, salvar, duracaoEstimada]
   );
 
-  // Conta só se o usuário ligou "Contar" e a aba está visível
+  
   useEffect(() => {
     if (!aceitouAviso) return;
     const id = setInterval(() => {
@@ -212,7 +212,7 @@ export function PlayerVideo({
       try {
         localStorage.setItem("novlyx-aviso-ads-ok", "1");
       } catch {
-        /* ignore */
+        
       }
     }
     setAceitouAviso(true);
@@ -220,7 +220,7 @@ export function PlayerVideo({
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Header fino */}
+      {}
       <div className="flex items-center gap-2 px-3 py-2">
         <Link
           href={`/conteudo/${conteudo.id}`}
@@ -248,13 +248,13 @@ export function PlayerVideo({
         ) : null}
       </div>
 
-      {/* VÍDEO — só o iframe, nada por cima */}
+      {}
       <div className="relative mx-auto w-full max-w-6xl bg-black">
         <div className="relative aspect-video w-full">
           {!aceitouAviso ? (
             <div className="absolute inset-0 flex items-center justify-center bg-novlyx-graphite p-5">
               <div className="max-w-sm text-center">
-                <ShieldAlert className="mx-auto h-8 w-8 text-novlyx-gold" />
+                <ShieldAlert className="mx-auto h-8 w-8 text-novlyx-accent" />
                 <p className="mt-3 text-sm text-white/60">
                   Fontes externas podem ter anúncios ou conteúdo +18.
                 </p>
@@ -268,7 +268,7 @@ export function PlayerVideo({
                 </label>
                 <Button
                   type="button"
-                  variant="gold"
+                  variant="accent"
                   className="mt-4 min-h-11 w-full"
                   onClick={aceitarAviso}
                 >
@@ -294,7 +294,7 @@ export function PlayerVideo({
         </div>
       </div>
 
-      {/* Controles de marca — bem embaixo, compactos */}
+      {}
       {aceitouAviso && (
         <div className="mx-auto w-full max-w-6xl px-3 pb-10 pt-2">
           <div className="flex items-center gap-2">
@@ -382,7 +382,7 @@ export function PlayerVideo({
                 className={cn(
                   "h-7 px-2 text-[11px]",
                   fonteId === fonte.id
-                    ? "bg-novlyx-gold text-black hover:bg-novlyx-gold/90"
+                    ? "bg-novlyx-accent text-black hover:bg-novlyx-accent/90"
                     : "border-white/10 text-white/50"
                 )}
                 onClick={() => setFonteId(fonte.id)}

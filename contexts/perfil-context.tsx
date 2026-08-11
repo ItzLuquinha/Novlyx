@@ -31,7 +31,7 @@ export function PerfilProvider({ children }: { children: React.ReactNode }) {
         if (parsed?.nome) setPerfil({ ...PERFIL_PADRAO, ...parsed });
       }
     } catch {
-      /* ignore */
+      
     }
   }, []);
 
@@ -40,7 +40,7 @@ export function PerfilProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.setItem(CHAVE, JSON.stringify(novo));
     } catch {
-      /* ignore */
+      
     }
   }
 

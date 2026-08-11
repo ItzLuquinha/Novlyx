@@ -79,7 +79,7 @@ export function ControlesPlayer({
           </Button>
 
           <Button
-            variant="gold"
+            variant="accent"
             size="icon"
             aria-label={tocando ? "Pausar" : "Reproduzir"}
             onClick={onAlternarPlay}

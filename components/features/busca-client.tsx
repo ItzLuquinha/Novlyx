@@ -51,14 +51,14 @@ export function BuscaClient() {
         <button
           type="button"
           onClick={() => router.push("/maite")}
-          className="group flex w-full flex-col items-center justify-center gap-5 rounded-2xl border border-novlyx-gold/20 bg-white/[0.03] py-20 text-center transition-all hover:border-novlyx-gold/40 hover:bg-white/[0.05]"
+          className="group flex w-full flex-col items-center justify-center gap-5 rounded-2xl border border-novlyx-accent/20 bg-white/[0.03] py-20 text-center transition-all hover:border-novlyx-accent/40 hover:bg-white/[0.05]"
         >
-          <Heart className="h-14 w-14 fill-novlyx-gold text-novlyx-gold drop-shadow-[0_0_24px_rgba(212,175,55,0.45)] transition-transform duration-500 group-hover:scale-110" />
+          <Heart className="h-14 w-14 fill-novlyx-accent text-novlyx-accent drop-shadow-[0_0_24px_rgba(212,175,55,0.45)] transition-transform duration-500 group-hover:scale-110" />
           <div>
-            <p className="bg-gold-gradient bg-clip-text text-2xl font-semibold text-transparent sm:text-3xl">
+            <p className="bg-accent-gradient bg-clip-text text-2xl font-semibold text-transparent sm:text-3xl">
               Eu te amo minha branquinha linda hehe
             </p>
-            <p className="mt-3 text-xs uppercase tracking-[0.25em] text-white/35 transition-colors group-hover:text-novlyx-gold/70">
+            <p className="mt-3 text-xs uppercase tracking-[0.25em] text-white/35 transition-colors group-hover:text-novlyx-accent/70">
               toque para abrir
             </p>
           </div>

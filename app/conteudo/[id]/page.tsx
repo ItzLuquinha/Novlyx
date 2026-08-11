@@ -12,7 +12,7 @@ interface PaginaConteudoProps {
 export default async function PaginaConteudo({ params }: PaginaConteudoProps) {
   const { id } = await params;
 
-  // Decodifica caso venha URL-encoded (tt%3A... etc.)
+  
   const idLimpo = idConteudoSeguro(id);
   if (!idLimpo) {
     notFound();

@@ -24,7 +24,7 @@ export function ContaClient() {
 
   return (
     <div className="container max-w-lg">
-      <p className="text-xs uppercase tracking-[0.2em] text-novlyx-gold/80">
+      <p className="text-xs uppercase tracking-[0.2em] text-novlyx-accent/80">
         Conta
       </p>
       <h1 className="mt-2 text-2xl font-semibold text-white sm:text-3xl">
@@ -52,14 +52,14 @@ export function ContaClient() {
         <Button
           type="button"
           onClick={salvar}
-          className="min-h-11 w-full bg-novlyx-gold text-black hover:bg-novlyx-gold/90"
+          className="min-h-11 w-full bg-novlyx-accent text-black hover:bg-novlyx-accent/90"
         >
           {salvo ? "Salvo" : "Salvar"}
         </Button>
       </div>
 
       <p className="mt-6 text-center text-xs text-white/35">
-        <Link href="/configuracoes" className="text-novlyx-gold hover:underline">
+        <Link href="/configuracoes" className="text-novlyx-accent hover:underline">
           Configurações
         </Link>
         {" · "}

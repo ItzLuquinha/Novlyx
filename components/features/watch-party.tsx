@@ -29,10 +29,10 @@ export function WatchPartyBanner({
   if (!isParty) return null;
 
   return (
-    <div className="mx-auto mb-3 flex w-full max-w-6xl items-center gap-3 rounded-xl border border-novlyx-gold/30 bg-novlyx-gold/10 px-3 py-2.5">
-      <Users className="h-4 w-4 shrink-0 text-novlyx-gold" />
+    <div className="mx-auto mb-3 flex w-full max-w-6xl items-center gap-3 rounded-xl border border-novlyx-accent/30 bg-novlyx-accent/10 px-3 py-2.5">
+      <Users className="h-4 w-4 shrink-0 text-novlyx-accent" />
       <div className="min-w-0 flex-1 text-sm">
-        <p className="font-medium text-novlyx-gold">Watch party</p>
+        <p className="font-medium text-novlyx-accent">Watch party</p>
         <p className="truncate text-xs text-white/55">
           {host} convidou você · {titulo}
           {ehSerie ? ` · T${s} E${e}` : ""}
@@ -72,7 +72,7 @@ export function BotaoWatchParty({
       setCopiado(true);
       setTimeout(() => setCopiado(false), 2000);
     } catch {
-      /* ignore */
+      
     }
   }
 

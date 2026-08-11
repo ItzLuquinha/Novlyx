@@ -4,7 +4,6 @@ import { Canal, CategoriaCanal } from "@/types";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** Free-TV/IPTV - canais gratuitos (só free-to-air / públicos) */
 const PLAYLIST_BR =
   "https://raw.githubusercontent.com/Free-TV/IPTV/master/playlists/playlist_brazil.m3u8";
 const PLAYLIST_FULL =
@@ -53,7 +52,7 @@ function parseM3U(text: string, soBrasil = false): Canal[] {
 
     if (line.startsWith("#")) continue;
     if (!meta.nome) continue;
-    if (!/^https?:\/\//i.test(line)) {
+    if (!/^https?:\/\
       meta = {};
       continue;
     }
@@ -77,7 +76,7 @@ function parseM3U(text: string, soBrasil = false): Canal[] {
       slug(meta.id || meta.nome) || `canal-${canais.length + 1}`;
 
     let logo =
-      meta.logo && /^https?:\/\//i.test(meta.logo)
+      meta.logo && /^https?:\/\
         ? meta.logo
         : `https://placehold.co/300x300/1a1a2e/d4af37/png?text=${encodeURIComponent(meta.nome.slice(0, 10))}`;
 
@@ -134,7 +133,7 @@ export async function GET() {
       }
     }
 
-    // Reindex números
+    
     canais.forEach((c, i) => {
       c.numero = i + 1;
     });

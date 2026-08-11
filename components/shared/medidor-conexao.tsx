@@ -40,7 +40,7 @@ function classificar(mbps: number): Omit<Resultado, "mbps"> {
 
 const CORES: Record<Nivel, string> = {
   otima: "from-emerald-400/80 to-teal-500/60",
-  boa: "from-novlyx-gold/80 to-amber-500/50",
+  boa: "from-novlyx-accent/80 to-amber-500/50",
   ok: "from-sky-400/70 to-blue-500/50",
   fraca: "from-orange-400/70 to-rose-500/50",
   offline: "from-zinc-500/50 to-zinc-600/40",
@@ -76,7 +76,7 @@ export function MedidorConexao() {
     }, 120);
 
     try {
-      // Arquivo público pequeno/médio (Cloudflare) - ~100KB - 1MB via cache buster
+      
       const url = `https://speed.cloudflare.com/__down?bytes=${500_000}&r=${Date.now()}`;
       const inicio = performance.now();
       const res = await fetch(url, { cache: "no-store" });
@@ -94,7 +94,7 @@ export function MedidorConexao() {
       setEstado(cls.nivel);
     } catch {
       clearInterval(anim);
-      // Fallback: Network Information API (aproximado)
+      
       const conn = (navigator as Navigator & {
         connection?: { downlink?: number; effectiveType?: string };
       }).connection;
@@ -118,7 +118,7 @@ export function MedidorConexao() {
   }, []);
 
   useEffect(() => {
-    // Mede uma vez ao entrar na home (discreto)
+    
     const t = setTimeout(() => {
       void medir();
     }, 800);
@@ -147,10 +147,10 @@ export function MedidorConexao() {
           CORES[nivel]
         )}
       >
-        <div className="absolute inset-0 bg-novlyx-black/80 backdrop-blur-sm" />
+        <div className="absolute inset-0 bg-novlyx-black/80 " />
 
         <div className="relative flex items-center gap-5">
-          {/* Barras de sinal minimalistas */}
+          {}
           <div className="flex h-12 items-end gap-1" aria-hidden>
             {BARRAS.map((h, i) => (
               <span
@@ -158,7 +158,7 @@ export function MedidorConexao() {
                 className={cn(
                   "w-1.5 rounded-full transition-all duration-500",
                   i < barrasAtivas
-                    ? "bg-novlyx-gold"
+                    ? "bg-novlyx-accent"
                     : "bg-white/15",
                   estado === "medindo" && i < barrasAtivas && "animate-pulse"
                 )}
@@ -200,7 +200,7 @@ export function MedidorConexao() {
             disabled={estado === "medindo"}
             className={cn(
               "shrink-0 rounded-full border border-white/15 px-3 py-1.5 text-xs text-white/80 transition-colors",
-              "hover:border-novlyx-gold/40 hover:bg-white/5 hover:text-white",
+              "hover:border-novlyx-accent/40 hover:bg-white/5 hover:text-white",
               "disabled:cursor-wait disabled:opacity-50"
             )}
           >
@@ -208,10 +208,10 @@ export function MedidorConexao() {
           </button>
         </div>
 
-        {/* Linha de progresso sutil */}
+        {}
         <div className="relative mt-4 h-px w-full overflow-hidden bg-white/10">
           <div
-            className="h-full bg-novlyx-gold/70 transition-all duration-300 ease-out"
+            className="h-full bg-novlyx-accent/70 transition-all duration-300 ease-out"
             style={{
               width:
                 estado === "medindo"

@@ -36,7 +36,7 @@ export async function sortearFilme(opcoes: {
   if (API_HABILITADA) {
     const candidatos: ConteudoResumo[] = [];
 
-    // Várias páginas de busca + trending
+    
     const paginas = [1, 2, 3, Math.floor(Math.random() * 5) + 1];
     for (const page of paginas) {
       try {
@@ -45,7 +45,7 @@ export async function sortearFilme(opcoes: {
         });
         candidatos.push(...mapearListaPaginada(data, "filme").itens);
       } catch {
-        /* ignora página */
+        
       }
     }
 
@@ -56,7 +56,7 @@ export async function sortearFilme(opcoes: {
       );
       candidatos.push(...mapearListaPaginada(trending, "filme").itens);
     } catch {
-      /* ok */
+      
     }
 
     const unicos = new Map<string, ConteudoResumo>();

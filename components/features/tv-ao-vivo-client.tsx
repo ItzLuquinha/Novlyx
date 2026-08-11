@@ -56,7 +56,7 @@ export function TvAoVivoClient() {
           href="https://github.com/Free-TV/IPTV"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-novlyx-gold/80 hover:underline"
+          className="text-novlyx-accent/80 hover:underline"
         >
           Free-TV/IPTV
         </a>
@@ -119,7 +119,7 @@ export function TvAoVivoClient() {
           className={cn(
             "gap-1.5",
             soFavoritos
-              ? "bg-novlyx-gold text-black hover:bg-novlyx-gold/90"
+              ? "bg-novlyx-accent text-black hover:bg-novlyx-accent/90"
               : "border-white/15 text-white"
           )}
           onClick={() => setSoFavoritos((v) => !v)}
@@ -155,7 +155,7 @@ export function TvAoVivoClient() {
           className={cn(
             "rounded-full px-3 py-1.5 text-xs transition-colors",
             !categoriaSelecionada
-              ? "bg-novlyx-gold text-black"
+              ? "bg-novlyx-accent text-black"
               : "bg-white/5 text-white/60 hover:bg-white/10"
           )}
         >
@@ -169,7 +169,7 @@ export function TvAoVivoClient() {
             className={cn(
               "rounded-full px-3 py-1.5 text-xs transition-colors",
               categoriaSelecionada === cat.id
-                ? "bg-novlyx-gold text-black"
+                ? "bg-novlyx-accent text-black"
                 : "bg-white/5 text-white/60 hover:bg-white/10"
             )}
           >
@@ -207,7 +207,7 @@ export function TvAoVivoClient() {
                 e.stopPropagation();
                 alternar(canal.id);
               }}
-              className="absolute right-2 top-2 z-10 rounded-full bg-black/60 p-1.5 text-white backdrop-blur hover:bg-black/80"
+              className="absolute right-2 top-2 z-10 rounded-full bg-black/60 p-1.5 text-white  hover:bg-black/80"
             >
               <Heart
                 className={cn(

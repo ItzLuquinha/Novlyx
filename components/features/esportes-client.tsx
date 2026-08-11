@@ -46,7 +46,7 @@ export function EsportesClient() {
     <div className="container py-10 sm:py-14">
       <h1 className="text-2xl font-bold text-white sm:text-3xl">Esportes</h1>
       <p className="mt-2 max-w-xl text-sm text-white/50">
-        Placar e agenda (ESPN). A NOVLYX não transmite os jogos — para tentar
+        Placar e agenda (ESPN). A NOVLYX não transmite os jogos - para tentar
         canais ao vivo, use a TV.
       </p>
 
@@ -65,7 +65,7 @@ export function EsportesClient() {
             className={cn(
               "rounded-full px-3 py-1.5 text-xs",
               filtro === id
-                ? "bg-novlyx-gold text-black"
+                ? "bg-novlyx-accent text-black"
                 : "bg-white/5 text-white/55 hover:bg-white/10"
             )}
           >
@@ -74,7 +74,7 @@ export function EsportesClient() {
         ))}
         <Link
           href="/tv-ao-vivo"
-          className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/60 hover:text-novlyx-gold"
+          className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/60 hover:text-novlyx-accent"
         >
           <Tv className="h-3.5 w-3.5" /> TV ao vivo
         </Link>

@@ -1,6 +1,4 @@
-/**
- * Validação básica de URLs externas (anti-javascript: / data: abusivos).
- */
+
 
 export function urlHttpSegura(url: string | null | undefined): string | null {
   if (!url || typeof url !== "string") return null;
@@ -9,7 +7,7 @@ export function urlHttpSegura(url: string | null | undefined): string | null {
   try {
     const u = new URL(limpa);
     if (u.protocol !== "http:" && u.protocol !== "https:") return null;
-    // bloqueia credenciais embutidas
+    
     if (u.username || u.password) return null;
     return u.toString();
   } catch {
@@ -20,11 +18,11 @@ export function urlHttpSegura(url: string | null | undefined): string | null {
 export function idConteudoSeguro(id: string | null | undefined): string | null {
   if (!id) return null;
   const limpo = decodeURIComponent(id).trim();
-  // imdb tt123, tmdb numérico, ou nome- fallback
+  
   if (/^tt\d{5,12}$/i.test(limpo)) return limpo;
   if (/^\d{1,12}$/.test(limpo)) return limpo;
   if (/^nome-[a-z0-9-]{1,60}-\d{0,4}$/i.test(limpo)) return limpo;
-  // permite ids de canal/iptv alfanuméricos curtos
+  
   if (/^[a-zA-Z0-9._-]{1,80}$/.test(limpo)) return limpo;
   return null;
 }

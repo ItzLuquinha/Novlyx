@@ -56,7 +56,7 @@ export function Footer() {
                     <li key={link.href}>
                       <Link
                         href={link.href}
-                        className="text-sm text-novlyx-gray-light transition-colors hover:text-novlyx-gold"
+                        className="text-sm text-novlyx-gray-light transition-colors hover:text-novlyx-accent"
                       >
                         {link.label}
                       </Link>
@@ -79,13 +79,13 @@ export function Footer() {
             </p>
             <p className="text-white/35">
               Ao continuar navegando, você declara ter lido os{" "}
-              <Link href="/termos" className="text-novlyx-gold/80 hover:underline">
+              <Link href="/termos" className="text-novlyx-accent/80 hover:underline">
                 Termos de Uso
               </Link>{" "}
               e a{" "}
               <Link
                 href="/privacidade"
-                className="text-novlyx-gold/80 hover:underline"
+                className="text-novlyx-accent/80 hover:underline"
               >
                 Política de Privacidade
               </Link>
@@ -96,7 +96,7 @@ export function Footer() {
             href="https://instagram.com/rian_pvcss"
             target="_blank"
             rel="noopener noreferrer"
-            className="shrink-0 text-white/35 transition-colors hover:text-novlyx-gold/80"
+            className="shrink-0 text-white/35 transition-colors hover:text-novlyx-accent/80"
           >
             Instagram · @rian_pvcss
           </a>

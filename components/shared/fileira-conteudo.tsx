@@ -53,7 +53,7 @@ export function FileiraConteudo({
 
   return (
     <section className="relative">
-      <h2 className="mb-3 px-1 text-lg font-semibold text-novlyx-white sm:text-xl">
+      <h2 className="mb-3 px-1 text-base font-semibold text-white/90 sm:text-lg">
         {titulo}
       </h2>
 

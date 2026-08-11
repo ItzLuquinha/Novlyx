@@ -69,7 +69,7 @@ export function ConteudoDetalheClient({
             </h1>
 
             <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-novlyx-gray-light">
-              <span className="flex items-center gap-1 font-semibold text-novlyx-gold">
+              <span className="flex items-center gap-1 font-semibold text-novlyx-accent">
                 <Star className="h-4 w-4 fill-current" />
                 {formatarNota(conteudo.nota)}
               </span>
@@ -83,7 +83,7 @@ export function ConteudoDetalheClient({
                   {formatarDuracao(conteudo.duracaoMinutos)}
                 </span>
               )}
-              <span className="rounded border border-novlyx-gold/40 px-1.5 py-0.5 text-xs text-novlyx-gold">
+              <span className="rounded border border-novlyx-accent/40 px-1.5 py-0.5 text-xs text-novlyx-accent">
                 {conteudo.qualidade}
               </span>
               <span className="rounded border border-white/20 px-1.5 py-0.5 text-xs">
@@ -134,7 +134,7 @@ export function ConteudoDetalheClient({
             </div>
 
             <div className="mt-7 flex flex-wrap gap-3">
-              <Button variant="gold" size="lg" asChild>
+              <Button variant="accent" size="lg" asChild>
                 <Link href={`/player/${conteudo.id}`}>
                   <Play className="h-5 w-5 fill-current" />
                   {progresso && progresso.tempoAtualSegundos >= 15
@@ -143,7 +143,7 @@ export function ConteudoDetalheClient({
                 </Link>
               </Button>
               {progresso && progresso.tempoAtualSegundos >= 15 && (
-                <p className="w-full text-xs text-novlyx-gold/80">
+                <p className="w-full text-xs text-novlyx-accent/80">
                   {rotuloContinuar(progresso)}
                 </p>
               )}

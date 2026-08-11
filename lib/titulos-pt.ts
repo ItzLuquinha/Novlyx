@@ -1,7 +1,4 @@
-/**
- * Localiza títulos para PT-BR quando a API devolve nome em inglês.
- * Não é tradução completa - cobre franchises e padrões comuns no BR.
- */
+
 
 const MAPA_EXATO: Record<string, string> = {
   "the shawshank redemption": "Um Sonho de Liberdade",
@@ -129,7 +126,6 @@ const MAPA_EXATO: Record<string, string> = {
   "a minecraft movie": "Minecraft: O Filme",
 };
 
-/** Substituições parciais de franchise (ordem importa) */
 const PADROES: [RegExp, string][] = [
   [/\bSpider-Man\b/gi, "Homem-Aranha"],
   [/\bSpiderman\b/gi, "Homem-Aranha"],
@@ -177,7 +173,7 @@ const PADROES: [RegExp, string][] = [
 ];
 
 function parecePortugues(texto: string): boolean {
-  // Tem acentos comuns do PT ou palavras típicas
+  
   if (/[áàâãéêíóôõúçÁÀÂÃÉÊÍÓÔÕÚÇ]/.test(texto)) return true;
   if (
     /\b(o|a|os|as|de|do|da|dos|das|um|uma|para|com|sem|no|na|em)\b/i.test(
@@ -202,7 +198,7 @@ export function tituloEmPortugues(
   const chave = base.toLowerCase().trim();
   if (MAPA_EXATO[chave]) return MAPA_EXATO[chave]!;
 
-  // Tenta mapa no original
+  
   if (tituloOriginal) {
     const chOrig = tituloOriginal.toLowerCase().trim();
     if (MAPA_EXATO[chOrig]) return MAPA_EXATO[chOrig]!;

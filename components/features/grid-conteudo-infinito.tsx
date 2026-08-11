@@ -60,7 +60,7 @@ export function GridConteudoInfinito({
       {temProximaPagina && (
         <div ref={sentinelaRef} className="flex justify-center py-8">
           {buscandoProximaPagina && (
-            <Loader2 className="h-6 w-6 animate-spin text-novlyx-gold" />
+            <Loader2 className="h-6 w-6 animate-spin text-novlyx-accent" />
           )}
         </div>
       )}

@@ -56,7 +56,7 @@ export function BuscaInstantanea() {
       <div
         className={cn(
           "flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3.5 py-2 transition-all",
-          aberta && "border-novlyx-gold/40 bg-white/10"
+          aberta && "border-novlyx-accent/40 bg-white/10"
         )}
       >
         <Search className="h-4 w-4 shrink-0 text-novlyx-gray-light" />
@@ -95,8 +95,8 @@ export function BuscaInstantanea() {
                 onClick={() => setAberta(false)}
                 className="flex flex-col items-center justify-center gap-3 p-8 text-center transition-colors hover:bg-white/[0.03]"
               >
-                <Heart className="h-10 w-10 fill-novlyx-gold text-novlyx-gold drop-shadow-[0_0_16px_rgba(212,175,55,0.45)]" />
-                <p className="bg-gold-gradient bg-clip-text text-base font-semibold text-transparent">
+                <Heart className="h-10 w-10 fill-novlyx-accent text-novlyx-accent drop-shadow-[0_0_16px_rgba(212,175,55,0.45)]" />
+                <p className="bg-accent-gradient bg-clip-text text-base font-semibold text-transparent">
                   Eu te amo minha branquinha linda hehe
                 </p>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-white/35">
@@ -173,7 +173,7 @@ export function BuscaInstantanea() {
                 <Link
                   href={`/busca?q=${encodeURIComponent(query)}`}
                   onClick={() => setAberta(false)}
-                  className="block rounded-md px-3 py-2 text-center text-sm font-medium text-novlyx-gold hover:bg-white/5"
+                  className="block rounded-md px-3 py-2 text-center text-sm font-medium text-novlyx-accent hover:bg-white/5"
                 >
                   Ver todos os resultados
                 </Link>

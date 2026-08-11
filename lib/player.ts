@@ -1,6 +1,4 @@
-/**
- * Fontes de player (ordem de preferência para público BR).
- */
+
 
 export type FontePlayer = {
   id: string;

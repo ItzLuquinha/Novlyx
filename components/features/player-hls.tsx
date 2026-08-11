@@ -22,7 +22,7 @@ function extrairYoutubeId(url: string): string | null {
         return u.pathname.split("/")[2] || null;
     }
   } catch {
-    /* ignore */
+    
   }
   return null;
 }
@@ -44,7 +44,7 @@ export function PlayerHls({ src, titulo }: PlayerHlsProps) {
       return;
     }
 
-    // Após o guard, TypeScript trata como string
+    
     const url: string = srcSeguro;
     const video = videoRef.current;
     if (!video) return;
@@ -127,7 +127,7 @@ export function PlayerHls({ src, titulo }: PlayerHlsProps) {
           className="h-full w-full border-0"
           allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
           allowFullScreen
-          referrerPolicy="no-referrer"
+          referrerPolicy="strict-origin-when-cross-origin"
         />
       );
     }
@@ -140,7 +140,7 @@ export function PlayerHls({ src, titulo }: PlayerHlsProps) {
           href={srcSeguro}
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-full bg-novlyx-gold px-4 py-2 text-sm font-medium text-black hover:bg-novlyx-gold/90"
+          className="rounded-full bg-novlyx-accent px-4 py-2 text-sm font-medium text-black hover:bg-novlyx-accent/90"
         >
           Abrir no YouTube
         </a>

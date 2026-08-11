@@ -101,7 +101,7 @@ export function usePlayerSimulado({
         duracaoTotalSegundos,
       });
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, []);
 
   const alternarPlay = useCallback(() => setTocando((t) => !t), []);

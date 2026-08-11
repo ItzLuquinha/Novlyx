@@ -11,16 +11,16 @@ import { ConteudoResumo } from "@/types";
 import { cn } from "@/lib/utils";
 
 const GENEROS = [
-  { id: "acao", label: "Ação", emoji: "💥" },
-  { id: "comedia", label: "Comédia", emoji: "😂" },
-  { id: "drama", label: "Drama", emoji: "🎭" },
-  { id: "terror", label: "Terror", emoji: "👻" },
-  { id: "romance", label: "Romance", emoji: "💕" },
-  { id: "ficcao-cientifica", label: "Ficção", emoji: "🚀" },
-  { id: "animacao", label: "Animação", emoji: "🎨" },
-  { id: "aventura", label: "Aventura", emoji: "🗺️" },
-  { id: "suspense", label: "Suspense", emoji: "🕵️" },
-  { id: "documentario", label: "Doc", emoji: "🎥" },
+  { id: "acao", label: "Ação" },
+  { id: "comedia", label: "Comédia" },
+  { id: "drama", label: "Drama" },
+  { id: "terror", label: "Terror" },
+  { id: "romance", label: "Romance" },
+  { id: "ficcao-cientifica", label: "Ficção" },
+  { id: "animacao", label: "Animação" },
+  { id: "aventura", label: "Aventura" },
+  { id: "suspense", label: "Suspense" },
+  { id: "documentario", label: "Doc" },
 ];
 
 const CLIMAS = [
@@ -84,7 +84,7 @@ export function SorteioClient() {
         setErro("Não achei nada com esse filtro. Tenta de novo.");
         return;
       }
-      // filtro leve de duração quando a API manda nota/ano só — aceita o item
+      
       setResultado(item);
       setPasso("resultado");
     } catch {
@@ -106,7 +106,7 @@ export function SorteioClient() {
 
   return (
     <div className="container max-w-lg py-10 sm:py-14">
-      <p className="text-xs uppercase tracking-[0.2em] text-novlyx-gold/80">
+      <p className="text-xs uppercase tracking-[0.2em] text-novlyx-accent/80">
         Sorteio
       </p>
       <h1 className="mt-2 text-3xl font-semibold text-white">Me Surpreenda</h1>
@@ -125,7 +125,7 @@ export function SorteioClient() {
                   ["clima", "genero", "epoca", "duracao", "resultado"].indexOf(
                     passo
                   ) > i
-                  ? "bg-novlyx-gold"
+                  ? "bg-novlyx-accent"
                   : "bg-white/10"
               )}
             />
@@ -154,7 +154,7 @@ export function SorteioClient() {
                   }
                   setPasso("genero");
                 }}
-                className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-left hover:border-novlyx-gold/40"
+                className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-left hover:border-novlyx-accent/40"
               >
                 <span>
                   <span className="block text-sm text-white">{c.label}</span>
@@ -187,11 +187,10 @@ export function SorteioClient() {
                   className={cn(
                     "rounded-xl border px-3 py-3 text-left text-sm transition-colors",
                     generoId === g.id
-                      ? "border-novlyx-gold/50 bg-novlyx-gold/10 text-white"
+                      ? "border-novlyx-accent/50 bg-novlyx-accent/10 text-white"
                       : "border-white/10 bg-white/[0.03] text-white/80 hover:border-white/25"
                   )}
                 >
-                  <span className="mr-1.5">{g.emoji}</span>
                   {g.label}
                 </button>
               ))}
@@ -216,7 +215,7 @@ export function SorteioClient() {
                   setFaixa(f);
                   setPasso("duracao");
                 }}
-                className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white hover:border-novlyx-gold/40"
+                className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white hover:border-novlyx-accent/40"
               >
                 {f.label}
                 <ChevronRight className="h-4 w-4 text-white/30" />
@@ -243,7 +242,7 @@ export function SorteioClient() {
                   setDuracao(d.id);
                   if (generoId && faixa) void sortear(generoId, faixa, d.id);
                 }}
-                className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-left hover:border-novlyx-gold/40 disabled:opacity-50"
+                className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-left hover:border-novlyx-accent/40 disabled:opacity-50"
               >
                 <span>
                   <span className="block text-sm text-white">{d.label}</span>
@@ -252,7 +251,7 @@ export function SorteioClient() {
                   )}
                 </span>
                 {carregando ? (
-                  <Dices className="h-4 w-4 animate-spin text-novlyx-gold" />
+                  <Dices className="h-4 w-4 animate-spin text-novlyx-accent" />
                 ) : (
                   <ChevronRight className="h-4 w-4 text-white/30" />
                 )}
@@ -285,13 +284,13 @@ export function SorteioClient() {
                 </h2>
                 <p className="mt-1 text-sm text-white/45">
                   {resultado.ano}
-                  {resultado.nota ? ` · ★ ${resultado.nota}` : ""}
+                  {resultado.nota ? ` ·  ${resultado.nota}` : ""}
                 </p>
               </div>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row">
               <Link href={`/player/${resultado.id}`} className="flex-1">
-                <Button className="w-full gap-2 bg-novlyx-gold text-black hover:bg-novlyx-gold/90">
+                <Button className="w-full gap-2 bg-novlyx-accent text-black hover:bg-novlyx-accent/90">
                   <Play className="h-4 w-4 fill-current" /> Assistir
                 </Button>
               </Link>

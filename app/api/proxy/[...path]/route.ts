@@ -1,14 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-/**
- * Proxy restrito para a API de catálogo (2embed).
- * - Só GET
- * - Host fixo (sem SSRF)
- * - Allowlist de caminhos
- * - Bloqueia path traversal
- * - Rate limit simples por IP
- */
-
 const UPSTREAM = (
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://api.2embed.cc"
 ).replace(/\/$/, "");
@@ -24,9 +15,8 @@ const CAMINHOS_PERMITIDOS = new Set([
   "similartv",
 ]);
 
-// Rate limit em memória (por instância)
 const hits = new Map<string, { count: number; resetAt: number }>();
-const LIMITE = 120; // req / minuto / IP
+const LIMITE = 120; 
 const JANELA_MS = 60_000;
 
 function rateLimitOk(ip: string): boolean {
@@ -46,7 +36,7 @@ function caminhoSeguro(segmentos: string[]): string | null {
   for (const seg of segmentos) {
     if (!seg || seg === "." || seg === "..") return null;
     if (seg.includes("\\") || seg.includes("%") || seg.includes(":")) return null;
-    // só letras, números, hífen, underscore
+    
     if (!/^[a-zA-Z0-9_-]+$/.test(seg)) return null;
   }
   const base = segmentos[0]!.toLowerCase();
@@ -57,7 +47,7 @@ function caminhoSeguro(segmentos: string[]): string | null {
 function querySegura(searchParams: URLSearchParams): string {
   const out = new URLSearchParams();
   for (const [k, v] of searchParams.entries()) {
-    // chaves/valores curtos e sem caracteres de controle
+    
     if (!/^[a-zA-Z0-9_]+$/.test(k)) continue;
     if (v.length > 200) continue;
     if (/[\u0000-\u001f]/.test(v)) continue;
@@ -95,11 +85,11 @@ export async function GET(
     const res = await fetch(url, {
       headers: { Accept: "application/json", "User-Agent": "NOVLYX/1.0" },
       cache: "no-store",
-      // evita seguir redirects para outro host
+      
       redirect: "manual",
     });
 
-    // Se upstream redirecionar, não seguimos (anti-SSRF)
+    
     if (res.status >= 300 && res.status < 400) {
       return NextResponse.json(
         { erro: "Redirect bloqueado" },
@@ -108,7 +98,7 @@ export async function GET(
     }
 
     const body = await res.text();
-    // limita tamanho da resposta (~2MB)
+    
     if (body.length > 2_000_000) {
       return NextResponse.json({ erro: "Resposta grande demais" }, { status: 502 });
     }
@@ -130,7 +120,6 @@ export async function GET(
   }
 }
 
-// Bloqueia outros métodos
 export async function POST() {
   return NextResponse.json({ erro: "Método não permitido" }, { status: 405 });
 }

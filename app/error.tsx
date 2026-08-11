@@ -20,7 +20,7 @@ export default function ErroGlobal({
     <main className="flex min-h-screen flex-col items-center justify-center gap-6 px-6 text-center">
       <LogoNovlyx tamanho="md" />
       <div className="flex flex-col items-center gap-3">
-        <AlertTriangle className="h-10 w-10 text-novlyx-gold" />
+        <AlertTriangle className="h-10 w-10 text-novlyx-accent" />
         <h1 className="text-2xl font-semibold text-novlyx-white">
           Algo deu errado
         </h1>
@@ -29,7 +29,7 @@ export default function ErroGlobal({
           em instantes.
         </p>
       </div>
-      <Button variant="gold" size="lg" onClick={reset}>
+      <Button variant="accent" size="lg" onClick={reset}>
         Tentar novamente
       </Button>
     </main>

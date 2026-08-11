@@ -35,9 +35,9 @@ export function getProgressoConteudo(
 export function salvarProgresso(
   progresso: Omit<ProgressoContinuarAssistindo, "atualizadoEm">
 ) {
-  // Só grava se já assistiu pelo menos ~15s (evita lixo)
+  
   if (progresso.tempoAtualSegundos < 15 && !progresso.episodioNumero) {
-    // séries: salva se mudou episódio mesmo com pouco tempo
+    
     if (!progresso.temporadaNumero) return;
   }
   if (progresso.tempoAtualSegundos < 5) return;
@@ -46,7 +46,7 @@ export function salvarProgresso(
     (item) => item.conteudoId !== progresso.conteudoId
   );
 
-  // Duração mínima razoável para a barra não ficar em 100% cedo demais
+  
   const duracao = Math.max(
     progresso.duracaoTotalSegundos || 0,
     progresso.tempoAtualSegundos + 60,
@@ -56,7 +56,7 @@ export function salvarProgresso(
   const percentualConcluido =
     duracao > 0 ? progresso.tempoAtualSegundos / duracao : 0;
 
-  // Completou (~95%): remove da lista "continuar"
+  
   if (percentualConcluido >= 0.95) {
     escreverStorage(itens);
     return;

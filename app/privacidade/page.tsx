@@ -138,7 +138,7 @@ export default function PaginaPrivacidade() {
       <Secao titulo="12. Contato">
         <p>
           Questões de privacidade:{" "}
-          <a href="/central-de-ajuda" className="text-novlyx-gold hover:underline">
+          <a href="/central-de-ajuda" className="text-novlyx-accent hover:underline">
             Central de Ajuda
           </a>
           .

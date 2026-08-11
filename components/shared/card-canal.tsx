@@ -23,7 +23,7 @@ export function CardCanal({ canal, ativo = false, onSelecionar }: CardCanalProps
       className={cn(
         "group relative flex flex-col overflow-hidden rounded-lg border bg-novlyx-graphite text-left transition-colors",
         ativo
-          ? "border-novlyx-gold shadow-lg shadow-novlyx-gold/10"
+          ? "border-novlyx-accent shadow-lg shadow-novlyx-accent/10"
           : "border-white/10 hover:border-white/25"
       )}
     >

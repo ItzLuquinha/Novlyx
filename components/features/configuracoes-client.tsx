@@ -14,7 +14,7 @@ export function ConfiguracoesClient() {
     try {
       setAvisoAds(localStorage.getItem("novlyx-aviso-ads-ok") !== "1");
     } catch {
-      /* ignore */
+      
     }
   }, []);
 
@@ -28,7 +28,7 @@ export function ConfiguracoesClient() {
         setAvisoAds(true);
       }
     } catch {
-      /* ignore */
+      
     }
   }
 
@@ -39,7 +39,7 @@ export function ConfiguracoesClient() {
 
   return (
     <div className="container max-w-lg">
-      <p className="text-xs uppercase tracking-[0.2em] text-novlyx-gold/80">
+      <p className="text-xs uppercase tracking-[0.2em] text-novlyx-accent/80">
         Conta
       </p>
       <h1 className="mt-2 text-2xl font-semibold text-white sm:text-3xl">
@@ -97,13 +97,13 @@ export function ConfiguracoesClient() {
             </Button>
           </div>
           {msg && (
-            <p className="mt-3 text-xs text-novlyx-gold">{msg}</p>
+            <p className="mt-3 text-xs text-novlyx-accent">{msg}</p>
           )}
         </div>
       </div>
 
       <p className="mt-8 text-center text-xs text-white/35">
-        <Link href="/conta" className="text-novlyx-gold hover:underline">
+        <Link href="/conta" className="text-novlyx-accent hover:underline">
           Gerenciar perfil
         </Link>
         {" · "}

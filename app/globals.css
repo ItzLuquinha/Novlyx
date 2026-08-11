@@ -16,20 +16,20 @@
     --primary: 260 20% 96%;
     --primary-foreground: 265 45% 3%;
 
-    --secondary: 265 25% 15%;
+    --secondary: 265 22% 14%;
     --secondary-foreground: 260 20% 96%;
 
-    --muted: 265 25% 15%;
-    --muted-foreground: 260 10% 68%;
+    --muted: 265 22% 14%;
+    --muted-foreground: 260 10% 62%;
 
     --accent: 271 76% 61%;
-    --accent-foreground: 265 45% 3%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62% 45%;
     --destructive-foreground: 260 20% 96%;
 
-    --border: 265 30% 100% / 0.1;
-    --input: 265 30% 100% / 0.1;
+    --border: 265 20% 100% / 0.08;
+    --input: 265 20% 100% / 0.08;
     --ring: 271 76% 61%;
 
     --radius: 0.5rem;
@@ -52,11 +52,10 @@
 
   body {
     @apply bg-novlyx-black text-novlyx-white antialiased;
-    font-feature-settings: "cv11", "ss01";
   }
 
   ::selection {
-    @apply bg-novlyx-gold/30 text-novlyx-white;
+    @apply bg-novlyx-accent/25 text-novlyx-white;
   }
 }
 
@@ -75,9 +74,5 @@
 
   .fileira-scroll > * {
     scroll-snap-align: start;
-  }
-
-  .fade-mask-right {
-    mask-image: linear-gradient(to right, black 92%, transparent 100%);
   }
 }

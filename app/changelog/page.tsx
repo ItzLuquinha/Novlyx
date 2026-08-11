@@ -19,7 +19,7 @@ const ENTRADAS = [
       "Me Surpreenda com mais perguntas (clima, gênero, época, duração)",
       "Esportes: placar e agenda via ESPN (Brasileirão, Premier, La Liga, Champions, NBA)",
       "Player com marca de progresso compacta (sem overlay em cima do vídeo)",
-      "Aviso: placar não é transmissão do jogo — use TV ao vivo para canais",
+      "Aviso: placar não é transmissão do jogo - use TV ao vivo para canais",
     ],
   },
   {
@@ -169,7 +169,7 @@ export default function PaginaChangelog() {
       <Header />
       <main className="pt-20 pb-16 lg:pt-24">
         <div className="container max-w-2xl">
-          <p className="text-xs uppercase tracking-[0.2em] text-novlyx-gold/80">
+          <p className="text-xs uppercase tracking-[0.2em] text-novlyx-accent/80">
             NOVLYX
           </p>
           <h1 className="mt-2 text-3xl font-semibold text-white">Changelog</h1>
@@ -194,7 +194,7 @@ export default function PaginaChangelog() {
           </div>
 
           <p className="mt-12 text-xs text-white/35">
-            <Link href="/" className="text-novlyx-gold hover:underline">
+            <Link href="/" className="text-novlyx-accent hover:underline">
               Voltar ao início
             </Link>
           </p>

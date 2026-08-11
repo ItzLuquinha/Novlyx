@@ -1,7 +1,4 @@
-/**
- * Placar e jogos via ESPN site API (pública, sem chave).
- * Usado só para placar/agenda — não transmite o jogo.
- */
+
 
 export interface JogoEsportivo {
   id: string;
@@ -90,12 +87,12 @@ export async function getJogosEsportivos(): Promise<JogoEsportivo[]> {
           });
         }
       } catch {
-        /* liga offline */
+        
       }
     })
   );
 
-  // ao vivo primeiro, depois agendados
+  
   const peso = { ao_vivo: 0, agendado: 1, encerrado: 2 };
   return resultados.sort(
     (a, b) =>

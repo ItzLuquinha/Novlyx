@@ -50,7 +50,7 @@ export function ListaTemporadas({ conteudoId, temporadas }: ListaTemporadasProps
           <Link
             key={episodio.id}
             href={`/player/${conteudoId}?temporada=${temporada.id}&episodio=${episodio.id}`}
-            className="group flex gap-4 rounded-lg border border-white/10 bg-novlyx-graphite p-3 transition-colors hover:border-novlyx-gold/40 hover:bg-novlyx-graphite-light"
+            className="group flex gap-4 rounded-lg border border-white/10 bg-novlyx-graphite p-3 transition-colors hover:border-novlyx-accent/40 hover:bg-novlyx-graphite-light"
           >
             <div className="relative aspect-video w-32 shrink-0 overflow-hidden rounded-md bg-novlyx-graphite-light sm:w-44">
               <Image
@@ -69,7 +69,7 @@ export function ListaTemporadas({ conteudoId, temporadas }: ListaTemporadasProps
             </div>
 
             <div className="flex flex-1 flex-col justify-center gap-1">
-              <p className="font-medium text-novlyx-white group-hover:text-novlyx-gold">
+              <p className="font-medium text-novlyx-white group-hover:text-novlyx-accent">
                 {episodio.titulo}
               </p>
               <p className="line-clamp-2 text-sm text-novlyx-gray-light">

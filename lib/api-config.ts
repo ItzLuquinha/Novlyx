@@ -1,8 +1,4 @@
-/**
- * Integração:
- * - Catálogo / metadados → api.2embed.cc
- * - Player embed        → www.2embed.cc (autoembed.app está fora / bloqueia iframe)
- */
+
 
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://api.2embed.cc";
@@ -25,9 +21,9 @@ export const API_ROTAS = {
   buscaSeries: "/searchtv",
   similaresSeries: "/similartv",
 
-  // Player 2embed
-  // Filme: /embed/{imdb|tmdb}
-  // Série: /embedtv/{imdb|tmdb}&s={season}&e={episode}
+  
+  
+  
   playerFilme: (id: string | number) => `${PLAYER_BASE_URL}/embed/${id}`,
   playerSerie: (id: string | number, season: number, episode: number) =>
     `${PLAYER_BASE_URL}/embedtv/${id}&s=${season}&e=${episode}`,

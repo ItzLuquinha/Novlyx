@@ -28,7 +28,7 @@ export function MenuPerfil() {
             className="relative h-10 w-10"
           >
             <Bell className="h-5 w-5" />
-            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-novlyx-gold" />
+            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-novlyx-accent" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-64">
@@ -44,7 +44,7 @@ export function MenuPerfil() {
         <DropdownMenuTrigger asChild>
           <button
             type="button"
-            className="rounded-full outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-novlyx-gold"
+            className="rounded-full outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-novlyx-accent"
             aria-label="Menu do perfil"
           >
             <Avatar className="h-9 w-9 border border-white/10 sm:h-10 sm:w-10">

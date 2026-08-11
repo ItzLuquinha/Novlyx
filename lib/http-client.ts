@@ -16,7 +16,6 @@ interface OpcoesRequisicao extends RequestInit {
   parametros?: Record<string, string | number | boolean | undefined>;
 }
 
-/** No browser usa proxy (evita CORS). No server chama a API direto. */
 function deveUsarProxy(): boolean {
   return USAR_PROXY && typeof window !== "undefined";
 }
@@ -35,7 +34,7 @@ function montarUrl(
     return url.toString();
   }
 
-  // Junta query params (caminho pode já ter ?imdb_id=...)
+  
   const params = new URLSearchParams();
   const partes = caminho.split("?");
   const pathPart = partes[0] ?? caminho;
@@ -55,7 +54,7 @@ function montarUrl(
     return `/api/proxy${path}${qs ? `?${qs}` : ""}`;
   }
 
-  // Server (ou proxy desligado): URL absoluta da 2embed
+  
   const base = API_BASE_URL.endsWith("/")
     ? API_BASE_URL.slice(0, -1)
     : API_BASE_URL;

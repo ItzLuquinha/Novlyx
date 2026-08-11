@@ -35,7 +35,7 @@ function gravar(itens: ItemHistorico[]) {
       localStorage.setItem(CHAVE, JSON.stringify(itens.slice(0, 100)));
     }
   } catch {
-    /* quota / private mode */
+    
   }
   window.dispatchEvent(new CustomEvent(EVENTO_HISTORICO));
 }
@@ -47,11 +47,6 @@ export function getHistorico(): ItemHistorico[] {
   );
 }
 
-/**
- * Registra ou atualiza um título no histórico.
- * Não grava se tempo < 10s.
- * Atualiza o mesmo título no máximo a cada ~20s (evita reescrever o tempo todo).
- */
 export function registrarHistorico(
   item: Omit<ItemHistorico, "assistidoEm">,
   opcoes?: { forcar?: boolean }
@@ -67,7 +62,7 @@ export function registrarHistorico(
       Date.now() - new Date(existente.assistidoEm).getTime();
     const tempoSubiu =
       item.tempoAtualSegundos - (existente.tempoAtualSegundos || 0);
-    // Evita spam: só atualiza se passou 20s ou o progresso subiu bastante
+    
     if (idadeMs < 20_000 && tempoSubiu < 15) {
       return;
     }
@@ -84,11 +79,11 @@ export function limparHistorico() {
   if (typeof window === "undefined") return;
   try {
     localStorage.removeItem(CHAVE);
-    // garante vazio mesmo se removeItem falhar parcialmente
+    
     localStorage.setItem(CHAVE, "[]");
     localStorage.removeItem(CHAVE);
   } catch {
-    /* ignore */
+    
   }
   window.dispatchEvent(new CustomEvent(EVENTO_HISTORICO));
 }

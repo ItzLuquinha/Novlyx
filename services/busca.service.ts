@@ -47,7 +47,7 @@ export async function pesquisarConteudo(query: string): Promise<ResultadoBusca> 
     };
   }
 
-  // Sem API: só canais/eventos mock locais (se houver)
+  
   const termo = query.trim().toLowerCase();
   return {
     filmes: [],

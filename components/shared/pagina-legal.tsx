@@ -16,7 +16,7 @@ export function PaginaLegal({
       <Header />
       <main className="pt-20 pb-16 lg:pt-24">
         <article className="container max-w-3xl">
-          <p className="text-xs uppercase tracking-[0.2em] text-novlyx-gold/80">
+          <p className="text-xs uppercase tracking-[0.2em] text-novlyx-accent/80">
             Legal
           </p>
           <h1 className="mt-2 text-3xl font-semibold text-novlyx-white sm:text-4xl">
@@ -32,17 +32,17 @@ export function PaginaLegal({
 
           <p className="mt-12 text-xs text-white/40">
             Voltar para{" "}
-            <Link href="/" className="text-novlyx-gold hover:underline">
+            <Link href="/" className="text-novlyx-accent hover:underline">
               início
             </Link>
             {" · "}
-            <Link href="/termos" className="text-novlyx-gold hover:underline">
+            <Link href="/termos" className="text-novlyx-accent hover:underline">
               Termos
             </Link>
             {" · "}
             <Link
               href="/privacidade"
-              className="text-novlyx-gold hover:underline"
+              className="text-novlyx-accent hover:underline"
             >
               Privacidade
             </Link>

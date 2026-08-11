@@ -38,11 +38,11 @@ export interface ConteudoResumo {
   posterUrl: string;
   bannerUrl: string;
   generos: Genero[];
-  /** Código ISO do idioma original (en, pt, ja...) */
+  
   idiomaOriginal?: string;
-  /** Status TMDB: Released, In Production, etc. */
+  
   statusLancamento?: string;
-  /** true se ainda não lançou / em cartaz de cinema (estimativa) */
+  
   emCinema?: boolean;
   emAlta?: boolean;
   lancamento?: boolean;

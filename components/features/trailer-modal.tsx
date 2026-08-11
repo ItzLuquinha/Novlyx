@@ -19,9 +19,9 @@ function youtubeId(url?: string): string | null {
       if (idx >= 0 && parts[idx + 1]) return parts[idx + 1]!;
     }
   } catch {
-    /* ignore */
+    
   }
-  // bare id
+  
   if (/^[\w-]{11}$/.test(url)) return url;
   return null;
 }
@@ -46,7 +46,7 @@ export function BotaoTrailer({ trailerUrl }: { trailerUrl?: string }) {
 
       {aberto && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 "
           role="dialog"
           aria-modal="true"
           aria-label="Trailer"

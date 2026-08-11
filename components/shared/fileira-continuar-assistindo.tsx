@@ -88,7 +88,7 @@ export function FileiraContinuarAssistindo() {
                 </span>
                 <div className="absolute inset-x-0 bottom-0 h-1 bg-white/20">
                   <div
-                    className="h-full bg-novlyx-gold"
+                    className="h-full bg-novlyx-accent"
                     style={{ width: `${percentual}%` }}
                   />
                 </div>

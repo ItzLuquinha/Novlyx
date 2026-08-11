@@ -7,23 +7,21 @@ interface LogoNovlyxProps {
 
 const TAMANHOS = {
   sm: "text-lg",
-  md: "text-2xl",
-  lg: "text-4xl",
+  md: "text-xl",
+  lg: "text-3xl",
 };
 
 export function LogoNovlyx({ className, tamanho = "md" }: LogoNovlyxProps) {
   return (
     <span
       className={cn(
-        "select-none font-display font-bold tracking-[0.18em]",
+        "select-none font-display font-bold tracking-[0.14em] text-white",
         TAMANHOS[tamanho],
         className
       )}
       aria-label="NOVLYX"
     >
-      <span className="bg-gold-gradient bg-clip-text text-transparent drop-shadow-[0_0_18px_rgba(201,162,75,0.25)]">
-        NOVLYX
-      </span>
+      NOVLYX
     </span>
   );
 }

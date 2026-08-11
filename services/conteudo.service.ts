@@ -155,8 +155,6 @@ export async function getDestaquesBanner(
   }
 }
 
-
-/** Títulos em alta com cara de público BR (buscas + idioma pt). */
 export async function getTrendingBR(limite = 20): Promise<ConteudoResumo[]> {
   if (!API_HABILITADA) return [];
   try {
@@ -172,7 +170,7 @@ export async function getTrendingBR(limite = 20): Promise<ConteudoResumo[]> {
     ]);
     const a = mapearListaPaginada(busca as EmbedListResponse, "filme").itens;
     const b = mapearListaPaginada(trending as EmbedListResponse, "filme").itens;
-    // prioriza pt
+    
     const mix = [...a, ...b].sort((x, y) => {
       const xp = x.idiomaOriginal?.startsWith("pt") ? 1 : 0;
       const yp = y.idiomaOriginal?.startsWith("pt") ? 1 : 0;
@@ -193,7 +191,6 @@ export async function getTrendingBR(limite = 20): Promise<ConteudoResumo[]> {
   }
 }
 
-/** Lançamentos recentes (últimos ~anos e trending do dia). */
 export async function getLancamentosDaSemana(
   limite = 20
 ): Promise<ConteudoResumo[]> {

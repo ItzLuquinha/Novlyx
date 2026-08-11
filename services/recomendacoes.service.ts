@@ -10,9 +10,6 @@ function ehSerieLike(cat: CategoriaConteudo): boolean {
   return cat === "serie" || cat === "anime" || cat === "dorama";
 }
 
-/**
- * Busca títulos parecidos com base no ID (IMDb tt… ou TMDB).
- */
 export async function getSimilaresPorId(
   id: string,
   categoria: CategoriaConteudo,
@@ -42,9 +39,6 @@ export async function getSimilaresPorId(
   }
 }
 
-/**
- * Fallback: busca pelo nome do título.
- */
 export async function getSimilaresPorTitulo(
   titulo: string,
   categoria: CategoriaConteudo,
@@ -53,7 +47,7 @@ export async function getSimilaresPorTitulo(
   if (!API_HABILITADA || !titulo.trim()) return [];
   try {
     const serie = ehSerieLike(categoria);
-    // pega palavras principais do título
+    
     const q = titulo
       .replace(/\([^)]*\)/g, "")
       .split(/[:\-]/)[0]

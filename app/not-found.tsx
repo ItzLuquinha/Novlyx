@@ -7,7 +7,7 @@ export default function NaoEncontrado() {
     <main className="flex min-h-screen flex-col items-center justify-center gap-6 px-6 text-center">
       <LogoNovlyx tamanho="md" />
       <div>
-        <p className="text-6xl font-bold text-novlyx-gold">404</p>
+        <p className="text-6xl font-bold text-novlyx-accent">404</p>
         <h1 className="mt-3 text-2xl font-semibold text-novlyx-white">
           Conteudo nao encontrado
         </h1>
@@ -16,7 +16,7 @@ export default function NaoEncontrado() {
           catalogo.
         </p>
       </div>
-      <Button variant="gold" size="lg" asChild>
+      <Button variant="accent" size="lg" asChild>
         <Link href="/">Voltar ao inicio</Link>
       </Button>
     </main>

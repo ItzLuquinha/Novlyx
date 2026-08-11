@@ -52,31 +52,30 @@ const config: Config = {
         },
         novlyx: {
           black: "#07040c",
-          graphite: "#150f22",
-          "graphite-light": "#221933",
-          bronze: "#7c3aed",
-          "bronze-light": "#9455f5",
-          gold: "#a855f7",
-          "gold-dark": "#6d28d9",
-          "gold-muted": "#8b5cf6",
+          graphite: "#120c1c",
+          "graphite-light": "#1c1529",
+          accent: "#a855f7",
+          "accent-soft": "#8b5cf6",
+          "accent-deep": "#6d28d9",
           white: "#f4f2f8",
-          "gray-light": "#a79fb5",
+          "gray-light": "#9b93ad",
+          "gray-mid": "#6b6378",
         },
       },
       backgroundImage: {
-        "gold-gradient":
-          "linear-gradient(135deg, #6d28d9 0%, #a855f7 45%, #c084fc 55%, #7c3aed 100%)",
-        "gold-gradient-subtle":
+        "accent-gradient":
+          "linear-gradient(180deg, #b56bff 0%, #8b4cf0 100%)",
+        "accent-gradient-subtle":
           "linear-gradient(180deg, #a855f7 0%, #7c3aed 100%)",
         "banner-fade":
-          "linear-gradient(180deg, rgba(7,4,12,0) 0%, rgba(7,4,12,0.4) 50%, rgba(7,4,12,0.95) 100%)",
+          "linear-gradient(180deg, rgba(7,4,12,0) 0%, rgba(7,4,12,0.55) 55%, rgba(7,4,12,0.97) 100%)",
         "banner-side":
-          "linear-gradient(90deg, rgba(7,4,12,0.98) 0%, rgba(7,4,12,0.7) 35%, rgba(7,4,12,0.1) 70%, rgba(7,4,12,0) 100%)",
+          "linear-gradient(90deg, rgba(7,4,12,0.97) 0%, rgba(7,4,12,0.65) 40%, rgba(7,4,12,0.15) 72%, rgba(7,4,12,0) 100%)",
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "0.625rem",
+        md: "0.5rem",
+        sm: "0.375rem",
       },
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
