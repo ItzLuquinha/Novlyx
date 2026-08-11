@@ -220,7 +220,6 @@ export function PlayerVideo({
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {}
       <div className="flex items-center gap-2 px-3 py-2">
         <Link
           href={`/conteudo/${conteudo.id}`}
@@ -247,8 +246,6 @@ export function PlayerVideo({
           </a>
         ) : null}
       </div>
-
-      {}
       <div className="relative mx-auto w-full max-w-6xl bg-black">
         <div className="relative aspect-video w-full">
           {!aceitouAviso ? (
@@ -293,8 +290,6 @@ export function PlayerVideo({
           )}
         </div>
       </div>
-
-      {}
       {aceitouAviso && (
         <div className="mx-auto w-full max-w-6xl px-3 pb-10 pt-2">
           <div className="flex items-center gap-2">
@@ -322,7 +317,7 @@ export function PlayerVideo({
             <Button
               type="button"
               size="sm"
-              variant={contando ? "gold" : "outline"}
+              variant={contando ? "accent" : "outline"}
               className="h-8 gap-1 px-2.5 text-[11px]"
               onClick={() => {
                 setContando((v) => {

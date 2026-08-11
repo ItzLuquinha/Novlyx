@@ -36,7 +36,6 @@ export function MaiteClient() {
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#07070c] px-6 text-center">
-      {}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-1/2 top-1/3 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-novlyx-accent/10 blur-[100px]" />
         <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black to-transparent" />
@@ -51,7 +50,6 @@ export function MaiteClient() {
       </Link>
 
       <div className="relative z-10 flex max-w-lg flex-col items-center">
-        {}
         <motion.div
           initial={{ scale: 0, opacity: 0 }}
           animate={fase >= 1 ? { scale: 1, opacity: 1 } : {}}
@@ -77,7 +75,6 @@ export function MaiteClient() {
           >
             
           </motion.div>
-          {}
           {fase >= 2 && (
             <>
               <motion.span

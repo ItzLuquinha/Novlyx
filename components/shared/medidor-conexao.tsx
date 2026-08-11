@@ -150,7 +150,6 @@ export function MedidorConexao() {
         <div className="absolute inset-0 bg-novlyx-black/80 " />
 
         <div className="relative flex items-center gap-5">
-          {}
           <div className="flex h-12 items-end gap-1" aria-hidden>
             {BARRAS.map((h, i) => (
               <span
@@ -207,8 +206,6 @@ export function MedidorConexao() {
             {estado === "medindo" ? "…" : "Medir"}
           </button>
         </div>
-
-        {}
         <div className="relative mt-4 h-px w-full overflow-hidden bg-white/10">
           <div
             className="h-full bg-novlyx-accent/70 transition-all duration-300 ease-out"

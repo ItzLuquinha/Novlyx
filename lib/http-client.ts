@@ -48,7 +48,8 @@ function montarUrl(
     });
   }
   const qs = params.toString();
-  const path = pathPart.startsWith("/") ? pathPart : `/${pathPart}`;
+  const pathSeg = pathPart ?? "";
+  const path = pathSeg.startsWith("/") ? pathSeg : `/${pathSeg}`;
 
   if (deveUsarProxy()) {
     return `/api/proxy${path}${qs ? `?${qs}` : ""}`;
