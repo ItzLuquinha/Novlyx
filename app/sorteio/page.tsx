@@ -5,7 +5,7 @@ import { SorteioClient } from "@/components/features/sorteio-client";
 
 export const metadata: Metadata = {
   title: "Me surpreenda | NOVLYX",
-  description: "Sorteie um filme aleatório por gênero e ano.",
+  description: "Sorteie 3 filmes por genero, epoca, tempo e nota.",
 };
 
 export default function PaginaSorteio() {

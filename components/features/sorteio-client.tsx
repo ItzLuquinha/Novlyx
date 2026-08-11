@@ -3,169 +3,129 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Dices, Play, RefreshCw, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ImagemPlaceholder as Image } from "@/components/shared/imagem-placeholder";
-import { sortearFilme } from "@/services/sorteio.service";
 import { ConteudoResumo } from "@/types";
+import { sortearFilmes } from "@/services/sorteio.service";
+import { ImagemPlaceholder as Image } from "@/components/shared/imagem-placeholder";
+import { formatarNota } from "@/utils/formatadores";
 import { cn } from "@/lib/utils";
 
 const GENEROS = [
-  { id: "acao", label: "Ação" },
-  { id: "comedia", label: "Comédia" },
+  { id: "acao", label: "Acao" },
+  { id: "comedia", label: "Comedia" },
   { id: "drama", label: "Drama" },
   { id: "terror", label: "Terror" },
   { id: "romance", label: "Romance" },
-  { id: "ficcao-cientifica", label: "Ficção" },
-  { id: "animacao", label: "Animação" },
+  { id: "ficcao-cientifica", label: "Ficcao" },
+  { id: "animacao", label: "Animacao" },
   { id: "aventura", label: "Aventura" },
   { id: "suspense", label: "Suspense" },
-  { id: "documentario", label: "Doc" },
-];
-
-const CLIMAS = [
-  { id: "leve", label: "Algo leve", desc: "pra relaxar" },
-  { id: "intensa", label: "História intensa", desc: "me prende" },
-  { id: "medo", label: "Quero medo", desc: "terror/suspense" },
-  { id: "chorar", label: "Pode emocionar", desc: "drama/romance" },
-  { id: "surpresa", label: "Tanto faz", desc: "me surpreenda" },
+  { id: "documentario", label: "Documentario" },
 ];
 
 const FAIXAS = [
-  { id: "classicos", label: "Clássicos", anoMin: 1970, anoMax: 1999 },
-  { id: "2000s", label: "Anos 2000", anoMin: 2000, anoMax: 2009 },
-  { id: "2010s", label: "Anos 2010", anoMin: 2010, anoMax: 2019 },
-  { id: "recentes", label: "Recentes", anoMin: 2020, anoMax: new Date().getFullYear() },
-  { id: "qualquer", label: "Qualquer época", anoMin: 1970, anoMax: new Date().getFullYear() },
+  { id: "classicos", label: "Classicos", sub: "1970-1999", anoMin: 1970, anoMax: 1999 },
+  { id: "2000s", label: "Anos 2000", sub: "2000-2009", anoMin: 2000, anoMax: 2009 },
+  { id: "2010s", label: "Anos 2010", sub: "2010-2019", anoMin: 2010, anoMax: 2019 },
+  { id: "recentes", label: "Recentes", sub: "2020+", anoMin: 2020, anoMax: new Date().getFullYear() },
+  { id: "qualquer", label: "Qualquer epoca", sub: "Todas", anoMin: 1970, anoMax: new Date().getFullYear() },
 ];
 
-const DURACOES = [
-  { id: "curto", label: "Curto", desc: "até ~1h30" },
-  { id: "medio", label: "Médio", desc: "~2h" },
-  { id: "longo", label: "Longo", desc: "épico" },
-  { id: "tanto", label: "Tanto faz", desc: "" },
+const TEMPOS = [
+  { id: "curto" as const, label: "Curto", sub: "ate ~1h30" },
+  { id: "medio" as const, label: "Medio", sub: "~2h" },
+  { id: "longo" as const, label: "Longo", sub: "epico" },
+  { id: "qualquer" as const, label: "Tanto faz", sub: "qualquer" },
 ];
 
-type Passo = "clima" | "genero" | "epoca" | "duracao" | "resultado";
+const NOTAS = [
+  { valor: 0, label: "Qualquer" },
+  { valor: 6, label: "6+" },
+  { valor: 7, label: "7+" },
+  { valor: 8, label: "8+" },
+  { valor: 8.5, label: "8.5+" },
+];
+
+type Passo = "genero" | "epoca" | "tempo" | "nota" | "resultado";
 
 export function SorteioClient() {
-  const [passo, setPasso] = useState<Passo>("clima");
-  const [clima, setClima] = useState<string | null>(null);
+  const [passo, setPasso] = useState<Passo>("genero");
   const [generoId, setGeneroId] = useState<string | null>(null);
   const [faixa, setFaixa] = useState<(typeof FAIXAS)[0] | null>(null);
-  const [duracao, setDuracao] = useState<string | null>(null);
-  const [resultado, setResultado] = useState<ConteudoResumo | null>(null);
+  const [tempo, setTempo] = useState<(typeof TEMPOS)[number]["id"] | null>(null);
+  const [notaMin, setNotaMin] = useState<number | null>(null);
+  const [resultados, setResultados] = useState<ConteudoResumo[]>([]);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
-  function generoPeloClima(c: string): string {
-    if (c === "medo") return "terror";
-    if (c === "chorar") return "drama";
-    if (c === "leve") return "comedia";
-    if (c === "intensa") return "acao";
-    return GENEROS[Math.floor(Math.random() * GENEROS.length)]!.id;
-  }
+  const passos: Passo[] = ["genero", "epoca", "tempo", "nota", "resultado"];
+  const idx = passos.indexOf(passo);
 
-  async function sortear(
+  async function executar(
     g: string,
     f: (typeof FAIXAS)[0],
-    d: string | null
+    t: (typeof TEMPOS)[number]["id"],
+    n: number
   ) {
     setCarregando(true);
     setErro(null);
-    setResultado(null);
+    setResultados([]);
     try {
-      const item = await sortearFilme({
+      const lista = await sortearFilmes({
         generoId: g,
         anoMin: f.anoMin,
         anoMax: f.anoMax,
+        notaMinima: n,
+        duracao: t,
+        quantidade: 3,
       });
-      if (!item) {
-        setErro("Não achei nada com esse filtro. Tenta de novo.");
+      if (lista.length === 0) {
+        setErro("Nao achei 3 titulos com esse filtro. Tenta afrouxar a nota ou a epoca.");
+        setPasso("resultado");
         return;
       }
-      
-      setResultado(item);
+      setResultados(lista);
       setPasso("resultado");
     } catch {
       setErro("Falha ao sortear. Tenta de novo.");
+      setPasso("resultado");
     } finally {
       setCarregando(false);
     }
   }
 
   function reiniciar() {
-    setPasso("clima");
-    setClima(null);
+    setPasso("genero");
     setGeneroId(null);
     setFaixa(null);
-    setDuracao(null);
-    setResultado(null);
+    setTempo(null);
+    setNotaMin(null);
+    setResultados([]);
     setErro(null);
   }
 
   return (
-    <div className="container max-w-lg py-10 sm:py-14">
-      <p className="text-xs uppercase tracking-[0.2em] text-novlyx-accent/80">
+    <div className="container max-w-2xl py-8 sm:py-12">
+      <p className="text-xs uppercase tracking-[0.18em] text-novlyx-accent/80">
         Sorteio
       </p>
       <h1 className="mt-2 text-3xl font-semibold text-white">Me Surpreenda</h1>
       <p className="mt-2 text-sm text-white/45">
-        Responde rápido. A gente escolhe um título pra você.
+        Genero, epoca, tempo e nota. Voce recebe 3 opcoes.
       </p>
 
-      <div className="mt-4 flex gap-1">
-        {(["clima", "genero", "epoca", "duracao", "resultado"] as Passo[]).map(
-          (p, i) => (
-            <div
-              key={p}
-              className={cn(
-                "h-1 flex-1 rounded-full",
-                passo === p ||
-                  ["clima", "genero", "epoca", "duracao", "resultado"].indexOf(
-                    passo
-                  ) > i
-                  ? "bg-novlyx-accent"
-                  : "bg-white/10"
-              )}
-            />
-          )
-        )}
+      <div className="mt-5 flex gap-1">
+        {passos.map((p, i) => (
+          <div
+            key={p}
+            className={cn(
+              "h-1 flex-1 rounded-full",
+              i <= idx ? "bg-novlyx-accent" : "bg-white/10"
+            )}
+          />
+        ))}
       </div>
 
       <AnimatePresence mode="wait">
-        {passo === "clima" && (
-          <motion.div
-            key="clima"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="mt-8 space-y-3"
-          >
-            <p className="text-sm text-white/60">Como você está hoje?</p>
-            {CLIMAS.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => {
-                  setClima(c.id);
-                  if (c.id !== "surpresa") {
-                    setGeneroId(generoPeloClima(c.id));
-                  }
-                  setPasso("genero");
-                }}
-                className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-left hover:border-novlyx-accent/40"
-              >
-                <span>
-                  <span className="block text-sm text-white">{c.label}</span>
-                  <span className="text-xs text-white/40">{c.desc}</span>
-                </span>
-                <ChevronRight className="h-4 w-4 text-white/30" />
-              </button>
-            ))}
-          </motion.div>
-        )}
-
         {passo === "genero" && (
           <motion.div
             key="genero"
@@ -174,8 +134,9 @@ export function SorteioClient() {
             exit={{ opacity: 0 }}
             className="mt-8"
           >
-            <p className="mb-3 text-sm text-white/60">Qual gênero?</p>
-            <div className="grid grid-cols-2 gap-2">
+            <p className="mb-1 text-sm font-medium text-white">Genero</p>
+            <p className="mb-4 text-xs text-white/40">Qual tipo de filme?</p>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {GENEROS.map((g) => (
                 <button
                   key={g.id}
@@ -185,10 +146,10 @@ export function SorteioClient() {
                     setPasso("epoca");
                   }}
                   className={cn(
-                    "rounded-xl border px-3 py-3 text-left text-sm transition-colors",
+                    "rounded-md border px-3 py-3 text-left text-sm transition-colors",
                     generoId === g.id
                       ? "border-novlyx-accent/50 bg-novlyx-accent/10 text-white"
-                      : "border-white/10 bg-white/[0.03] text-white/80 hover:border-white/25"
+                      : "border-white/10 bg-novlyx-graphite text-white/80 hover:border-white/20"
                   )}
                 >
                   {g.label}
@@ -206,121 +167,204 @@ export function SorteioClient() {
             exit={{ opacity: 0 }}
             className="mt-8 space-y-2"
           >
-            <p className="mb-3 text-sm text-white/60">De que época?</p>
+            <p className="mb-1 text-sm font-medium text-white">Epoca</p>
+            <p className="mb-4 text-xs text-white/40">De que anos?</p>
             {FAIXAS.map((f) => (
               <button
                 key={f.id}
                 type="button"
                 onClick={() => {
                   setFaixa(f);
-                  setPasso("duracao");
+                  setPasso("tempo");
                 }}
-                className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white hover:border-novlyx-accent/40"
+                className="flex w-full items-center justify-between rounded-md border border-white/10 bg-novlyx-graphite px-4 py-3 text-left hover:border-novlyx-accent/40"
               >
-                {f.label}
-                <ChevronRight className="h-4 w-4 text-white/30" />
+                <span className="text-sm text-white">{f.label}</span>
+                <span className="text-xs text-white/40">{f.sub}</span>
               </button>
             ))}
+            <button
+              type="button"
+              className="mt-2 text-xs text-white/40 hover:text-white"
+              onClick={() => setPasso("genero")}
+            >
+              Voltar
+            </button>
           </motion.div>
         )}
 
-        {passo === "duracao" && (
+        {passo === "tempo" && (
           <motion.div
-            key="duracao"
+            key="tempo"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             className="mt-8 space-y-2"
           >
-            <p className="mb-3 text-sm text-white/60">Quanto tempo você tem?</p>
-            {DURACOES.map((d) => (
+            <p className="mb-1 text-sm font-medium text-white">Tempo</p>
+            <p className="mb-4 text-xs text-white/40">
+              Quanto tempo voce tem? (aproximado)
+            </p>
+            {TEMPOS.map((t) => (
               <button
-                key={d.id}
+                key={t.id}
                 type="button"
-                disabled={carregando || !generoId || !faixa}
                 onClick={() => {
-                  setDuracao(d.id);
-                  if (generoId && faixa) void sortear(generoId, faixa, d.id);
+                  setTempo(t.id);
+                  setPasso("nota");
                 }}
-                className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-left hover:border-novlyx-accent/40 disabled:opacity-50"
+                className="flex w-full items-center justify-between rounded-md border border-white/10 bg-novlyx-graphite px-4 py-3 text-left hover:border-novlyx-accent/40"
               >
-                <span>
-                  <span className="block text-sm text-white">{d.label}</span>
-                  {d.desc && (
-                    <span className="text-xs text-white/40">{d.desc}</span>
-                  )}
-                </span>
-                {carregando ? (
-                  <Dices className="h-4 w-4 animate-spin text-novlyx-accent" />
-                ) : (
-                  <ChevronRight className="h-4 w-4 text-white/30" />
-                )}
+                <span className="text-sm text-white">{t.label}</span>
+                <span className="text-xs text-white/40">{t.sub}</span>
               </button>
             ))}
-            {erro && <p className="text-sm text-rose-300">{erro}</p>}
+            <button
+              type="button"
+              className="mt-2 text-xs text-white/40 hover:text-white"
+              onClick={() => setPasso("epoca")}
+            >
+              Voltar
+            </button>
           </motion.div>
         )}
 
-        {passo === "resultado" && resultado && (
+        {passo === "nota" && (
+          <motion.div
+            key="nota"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="mt-8"
+          >
+            <p className="mb-1 text-sm font-medium text-white">
+              Minimo de estrelas
+            </p>
+            <p className="mb-4 text-xs text-white/40">Nota minima do filme</p>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {NOTAS.map((n) => (
+                <button
+                  key={n.valor}
+                  type="button"
+                  disabled={carregando || !generoId || !faixa || !tempo}
+                  onClick={() => {
+                    setNotaMin(n.valor);
+                    if (generoId && faixa && tempo) {
+                      void executar(generoId, faixa, tempo, n.valor);
+                    }
+                  }}
+                  className="rounded-md border border-white/10 bg-novlyx-graphite px-3 py-3 text-sm text-white hover:border-novlyx-accent/40 disabled:opacity-50"
+                >
+                  {n.label}
+                </button>
+              ))}
+            </div>
+            {carregando && (
+              <p className="mt-4 text-center text-sm text-white/45">
+                Sorteando 3 filmes...
+              </p>
+            )}
+            <button
+              type="button"
+              className="mt-4 text-xs text-white/40 hover:text-white"
+              onClick={() => setPasso("tempo")}
+              disabled={carregando}
+            >
+              Voltar
+            </button>
+          </motion.div>
+        )}
+
+        {passo === "resultado" && (
           <motion.div
             key="resultado"
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="mt-8 space-y-4"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="mt-8 space-y-5"
           >
-            <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
-              <div className="relative aspect-[2/3] max-h-72 w-full sm:aspect-video sm:max-h-none">
-                <Image
-                  src={resultado.posterUrl}
-                  alt={resultado.titulo}
-                  fill
-                  className="object-cover"
-                  sizes="400px"
-                />
-              </div>
-              <div className="p-4">
-                <h2 className="text-xl font-semibold text-white">
-                  {resultado.titulo}
-                </h2>
-                <p className="mt-1 text-sm text-white/45">
-                  {resultado.ano}
-                  {resultado.nota ? ` ·  ${resultado.nota}` : ""}
-                </p>
-              </div>
+            <div>
+              <p className="text-sm font-medium text-white">Suas 3 opcoes</p>
+              <p className="mt-1 text-xs text-white/40">
+                {[
+                  GENEROS.find((g) => g.id === generoId)?.label,
+                  faixa?.label,
+                  TEMPOS.find((t) => t.id === tempo)?.label,
+                  notaMin != null && notaMin > 0 ? `${notaMin}+` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </p>
             </div>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <Link href={`/player/${resultado.id}`} className="flex-1">
-                <Button className="w-full gap-2 bg-novlyx-accent text-black hover:bg-novlyx-accent/90">
-                  <Play className="h-4 w-4 fill-current" /> Assistir
-                </Button>
-              </Link>
-              <Link href={`/conteudo/${resultado.id}`} className="flex-1">
-                <Button variant="outline" className="w-full border-white/15">
-                  Detalhes
-                </Button>
-              </Link>
+
+            {erro && (
+              <p className="rounded-md border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
+                {erro}
+              </p>
+            )}
+
+            <div className="grid gap-3 sm:grid-cols-3">
+              {resultados.map((item) => (
+                <div
+                  key={item.id}
+                  className="overflow-hidden rounded-md border border-white/10 bg-novlyx-graphite"
+                >
+                  <div className="relative aspect-[2/3] w-full">
+                    <Image
+                      src={item.posterUrl}
+                      alt={item.titulo}
+                      fill
+                      className="object-cover"
+                      sizes="200px"
+                    />
+                  </div>
+                  <div className="p-3">
+                    <h2 className="line-clamp-2 text-sm font-medium text-white">
+                      {item.titulo}
+                    </h2>
+                    <p className="mt-1 text-xs text-white/45">
+                      {item.ano}
+                      {item.nota ? ` · ${formatarNota(item.nota)}` : ""}
+                    </p>
+                    <div className="mt-3 flex flex-col gap-1.5">
+                      <Link
+                        href={`/player/${item.id}`}
+                        className="inline-flex h-9 items-center justify-center rounded-md bg-novlyx-accent text-xs font-semibold text-white hover:bg-novlyx-accent-soft"
+                      >
+                        Assistir
+                      </Link>
+                      <Link
+                        href={`/conteudo/${item.id}`}
+                        className="inline-flex h-9 items-center justify-center rounded-md border border-white/10 text-xs text-white/70 hover:bg-white/5"
+                      >
+                        Detalhes
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-            <div className="flex justify-center gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-white/50"
-                disabled={!generoId || !faixa}
+
+            <div className="flex flex-wrap justify-center gap-3 pt-2">
+              <button
+                type="button"
+                disabled={carregando || !generoId || !faixa || !tempo || notaMin == null}
                 onClick={() => {
-                  if (generoId && faixa)
-                    void sortear(generoId, faixa, duracao);
+                  if (generoId && faixa && tempo && notaMin != null) {
+                    void executar(generoId, faixa, tempo, notaMin);
+                  }
                 }}
+                className="text-sm text-novlyx-accent hover:underline disabled:opacity-40"
               >
-                <Dices className="mr-1 h-3.5 w-3.5" /> Outro
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-white/50"
+                Sortear de novo
+              </button>
+              <button
+                type="button"
                 onClick={reiniciar}
+                className="text-sm text-white/40 hover:text-white"
               >
-                <RefreshCw className="mr-1 h-3.5 w-3.5" /> Recomeçar
-              </Button>
+                Recomecar
+              </button>
             </div>
           </motion.div>
         )}
