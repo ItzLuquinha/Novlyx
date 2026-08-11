@@ -107,19 +107,8 @@ export async function sortearFilmes(
     );
   }
 
-  if (duracao !== "qualquer") {
-    const comDuracao = pool.filter((i) => (i.duracaoMinutos ?? 0) > 0);
-    if (comDuracao.length >= quantidade) {
-      pool = comDuracao.filter((i) => {
-        const m = i.duracaoMinutos ?? 0;
-        if (duracao === "curto") return m > 0 && m <= 100;
-        if (duracao === "medio") return m > 90 && m <= 140;
-        if (duracao === "longo") return m > 130;
-        return true;
-      });
-      if (pool.length < quantidade) pool = comDuracao;
-    }
-  }
+  // duracao fica so na UI: ConteudoResumo nao traz minutos da listagem
+  void duracao;
 
   return shuffle(pool).slice(0, quantidade);
 }
