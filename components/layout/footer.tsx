@@ -27,6 +27,7 @@ const COLUNAS_FOOTER = [
       { href: "/termos", label: "Termos de Uso" },
       { href: "/privacidade", label: "Privacidade" },
       { href: "/changelog", label: "Changelog" },
+      { href: "/instalar", label: "Instalar app" },
       { href: "/historico", label: "Historico" },
     ],
   },

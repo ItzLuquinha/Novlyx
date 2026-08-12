@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { QueryProvider } from "@/contexts/query-provider";
 import { PerfilProvider } from "@/contexts/perfil-context";
+import { AvisoAdguard } from "@/components/features/aviso-adguard";
 
 export const metadata: Metadata = {
   title: "NOVLYX - Filmes, Series e Animes",
@@ -18,7 +19,10 @@ export default function RootLayout({
     <html lang="pt-BR" className="dark">
       <body>
         <QueryProvider>
-          <PerfilProvider>{children}</PerfilProvider>
+          <PerfilProvider>
+            <AvisoAdguard />
+            {children}
+          </PerfilProvider>
         </QueryProvider>
       </body>
     </html>

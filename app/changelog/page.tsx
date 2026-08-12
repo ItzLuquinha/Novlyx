@@ -11,6 +11,19 @@ export const metadata: Metadata = {
 const ENTRADAS = [
   {
     data: "Agosto 2026",
+    titulo: "Fontes BR, AdGuard, sorteio e app na tela inicial",
+    itens: [
+      "Removidas fontes Multiembed, 2Embed e VidSrc (ingles / muitos anuncios)",
+      "Player so com fontes brasileiras: EmbedPlay (BR) e EmbedPlay Alt (BR2)",
+      "Aviso obrigatorio recomendando AdGuard, com passos para PC, Android e iPhone",
+      "Sorteio de filmes com filtro real de genero (sem misturar trending aleatorio)",
+      "Sortear de novo respeita genero, epoca e nota minima",
+      "Pagina /instalar: tutorial Apple (Safari → Compartilhar → Tela de Inicio) e Android",
+      "Link Instalar app no rodape",
+    ],
+  },
+  {
+    data: "Agosto 2026",
     titulo: "Trailers, watch party, sorteio e esportes ao vivo",
     itens: [
       "Trailer oficial (YouTube) na página de detalhe, quando a API envia o link",

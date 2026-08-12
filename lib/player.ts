@@ -1,5 +1,3 @@
-
-
 export type FontePlayer = {
   id: string;
   nome: string;
@@ -8,6 +6,11 @@ export type FontePlayer = {
   serie: (id: string, season: number, episode: number) => string;
 };
 
+/**
+ * Somente fontes BR.
+ * Primary: EmbedPlay
+ * Secondary: EmbedPlay Site (mesmo ecossistema BR, dominio alternativo)
+ */
 export const FONTES_PLAYER: FontePlayer[] = [
   {
     id: "embedplay",
@@ -17,46 +20,11 @@ export const FONTES_PLAYER: FontePlayer[] = [
     serie: (id, s, e) => `https://embedplayapi.top/embed/${id}/${s}/${e}`,
   },
   {
-    id: "multiembed",
-    nome: "Multiembed",
-    badge: "Multi",
-    filme: (id) => {
-      if (id.startsWith("tt")) {
-        return `https://multiembed.mov/?video_id=${id}`;
-      }
-      return `https://multiembed.mov/?video_id=${id}&tmdb=1`;
-    },
-    serie: (id, s, e) => {
-      if (id.startsWith("tt")) {
-        return `https://multiembed.mov/?video_id=${id}&s=${s}&e=${e}`;
-      }
-      return `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${s}&e=${e}`;
-    },
-  },
-  {
-    id: "2embed",
-    nome: "2Embed",
-    badge: "2E",
-    filme: (id) => `https://www.2embed.cc/embed/${id}`,
-    serie: (id, s, e) =>
-      `https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}`,
-  },
-  {
-    id: "vidsrc",
-    nome: "VidSrc",
-    badge: "VS",
-    filme: (id) => {
-      const base = id.startsWith("tt")
-        ? `https://vidsrc-embed.ru/embed/movie?imdb=${id}`
-        : `https://vidsrc-embed.ru/embed/movie?tmdb=${id}`;
-      return `${base}&ds_lang=pt`;
-    },
-    serie: (id, s, e) => {
-      const base = id.startsWith("tt")
-        ? `https://vidsrc-embed.ru/embed/tv?imdb=${id}`
-        : `https://vidsrc-embed.ru/embed/tv?tmdb=${id}`;
-      return `${base}&season=${s}&episode=${e}&ds_lang=pt`;
-    },
+    id: "embedplay-site",
+    nome: "EmbedPlay Alt (BR)",
+    badge: "BR2",
+    filme: (id) => `https://embedplayapi.site/embed/${id}`,
+    serie: (id, s, e) => `https://embedplayapi.site/embed/${id}/${s}/${e}`,
   },
 ];
 
