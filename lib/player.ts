@@ -8,8 +8,8 @@ export type FontePlayer = {
 
 /**
  * Somente fontes BR.
- * Primary: EmbedPlay
- * Secondary: EmbedPlay Site (mesmo ecossistema BR, dominio alternativo)
+ * 1) EmbedPlay - principal
+ * 2) WarezCDN - alternativa BR (embedplayapi.site nao responde)
  */
 export const FONTES_PLAYER: FontePlayer[] = [
   {
@@ -20,11 +20,11 @@ export const FONTES_PLAYER: FontePlayer[] = [
     serie: (id, s, e) => `https://embedplayapi.top/embed/${id}/${s}/${e}`,
   },
   {
-    id: "embedplay-site",
-    nome: "EmbedPlay Alt (BR)",
+    id: "warezcdn",
+    nome: "WarezCDN (BR)",
     badge: "BR2",
-    filme: (id) => `https://embedplayapi.site/embed/${id}`,
-    serie: (id, s, e) => `https://embedplayapi.site/embed/${id}/${s}/${e}`,
+    filme: (id) => `https://warezcdn.lat/filme/${id}`,
+    serie: (id, s, e) => `https://warezcdn.lat/serie/${id}/${s}/${e}`,
   },
 ];
 
