@@ -79,14 +79,14 @@ export function SorteioClient() {
         quantidade: 3,
       });
       if (lista.length === 0) {
-        setErro("Nao achei 3 titulos com esse filtro. Tenta afrouxar a nota ou a epoca.");
+        setErro("Nao achei titulos com esse filtro. Tenta outro genero, epoca mais ampla ou nota menor.");
         setPasso("resultado");
         return;
       }
       setResultados(lista);
       setPasso("resultado");
     } catch {
-      setErro("Falha ao sortear. Tenta de novo.");
+      setErro("Falha na busca. Verifica a conexao e tenta de novo.");
       setPasso("resultado");
     } finally {
       setCarregando(false);

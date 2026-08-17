@@ -6,57 +6,57 @@ import {
   mapearListaPaginada,
 } from "@/lib/adapters/2embed";
 
-/** Query de busca + palavras que o genero deve bater nos generos do item */
-const GENERO_CFG: Record<
-  string,
-  { query: string; keywords: string[] }
-> = {
+/**
+ * Query simples (a API de search trata frase longa como titulo).
+ * Keywords so reforçam quando o item traz generos preenchidos.
+ */
+const GENERO_CFG: Record<string, { queries: string[]; keywords: string[] }> = {
   acao: {
-    query: "action movie",
-    keywords: ["action", "acao", "ação", "martial", "superhero"],
+    queries: ["action"],
+    keywords: ["action", "acao", "ação"],
   },
   drama: {
-    query: "drama movie",
+    queries: ["drama"],
     keywords: ["drama"],
   },
   comedia: {
-    query: "comedy movie",
-    keywords: ["comedy", "comedia", "comédia", "humor"],
+    queries: ["comedy"],
+    keywords: ["comedy", "comedia", "comédia"],
   },
   terror: {
-    query: "horror movie",
-    keywords: ["horror", "terror", "slasher", "supernatural"],
+    queries: ["horror"],
+    keywords: ["horror", "terror"],
   },
   romance: {
-    query: "romance movie",
+    queries: ["romance"],
     keywords: ["romance", "romantic"],
   },
   "ficcao-cientifica": {
-    query: "science fiction movie",
+    queries: ["sci-fi", "science"],
     keywords: ["science fiction", "sci-fi", "scifi", "ficcao", "ficção"],
   },
   aventura: {
-    query: "adventure movie",
+    queries: ["adventure"],
     keywords: ["adventure", "aventura"],
   },
   suspense: {
-    query: "thriller movie",
+    queries: ["thriller"],
     keywords: ["thriller", "suspense", "mystery"],
   },
   animacao: {
-    query: "animation movie",
-    keywords: ["animation", "animated", "animacao", "animação", "anime"],
+    queries: ["animation"],
+    keywords: ["animation", "animated", "animacao", "animação"],
   },
   fantasia: {
-    query: "fantasy movie",
+    queries: ["fantasy"],
     keywords: ["fantasy", "fantasia"],
   },
   crime: {
-    query: "crime movie",
-    keywords: ["crime", "gangster"],
+    queries: ["crime"],
+    keywords: ["crime"],
   },
   documentario: {
-    query: "documentary movie",
+    queries: ["documentary"],
     keywords: ["documentary", "documentario", "documentário"],
   },
 };
@@ -73,7 +73,7 @@ export interface OpcoesSorteio {
 }
 
 function idOk(item: ConteudoResumo): boolean {
-  return Boolean(item.id) && !item.id.startsWith("tmp-");
+  return Boolean(item.id) && !item.id.startsWith("tmp-") && !item.id.startsWith("nome-");
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -85,16 +85,51 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-function pertenceAoGenero(item: ConteudoResumo, keywords: string[]): boolean {
+function textoGeneros(item: ConteudoResumo): string {
+  return (item.generos ?? []).map((g) => g.nome.toLowerCase()).join(" ");
+}
+
+/**
+ * Se o item nao tem generos, confia na busca.
+ * Se tem, exige pelo menos uma keyword.
+ */
+function passaGenero(item: ConteudoResumo, keywords: string[]): boolean {
   if (!keywords.length) return true;
-  const nomes = (item.generos ?? [])
-    .map((g) => g.nome.toLowerCase())
-    .join(" ");
-  if (!nomes.trim()) {
-    // sem genero na API: nao confiar (evita homem-aranha em terror)
-    return false;
-  }
+  const nomes = textoGeneros(item);
+  if (!nomes.trim()) return true;
   return keywords.some((k) => nomes.includes(k.toLowerCase()));
+}
+
+function passaAno(item: ConteudoResumo, anoMin: number, anoMax: number): boolean {
+  if (!item.ano || item.ano <= 0) return true;
+  return item.ano >= anoMin && item.ano <= anoMax;
+}
+
+function passaNota(item: ConteudoResumo, notaMinima: number): boolean {
+  if (notaMinima <= 0) return true;
+  return (item.nota ?? 0) >= notaMinima;
+}
+
+async function buscarPaginas(
+  queries: string[],
+  paginas: number[]
+): Promise<ConteudoResumo[]> {
+  const tarefas: Promise<ConteudoResumo[]>[] = [];
+
+  for (const q of queries) {
+    for (const page of paginas) {
+      tarefas.push(
+        httpClient<EmbedListResponse>(API_ROTAS.buscaFilmes, {
+          parametros: { q, page },
+        })
+          .then((data) => mapearListaPaginada(data, "filme").itens)
+          .catch(() => [] as ConteudoResumo[])
+      );
+    }
+  }
+
+  const lotes = await Promise.all(tarefas);
+  return lotes.flat();
 }
 
 export async function sortearFilmes(
@@ -111,48 +146,59 @@ export async function sortearFilmes(
   if (!API_HABILITADA) return [];
 
   const cfg = GENERO_CFG[generoId] ?? {
-    query: generoId.replace(/-/g, " "),
+    queries: [generoId.replace(/-/g, " ")],
     keywords: [generoId.replace(/-/g, " ")],
   };
 
-  const candidatos: ConteudoResumo[] = [];
-  const paginas = [1, 2, 3, 4, 5];
+  // Paginas aleatorias para variar o "sortear de novo"
+  const basePages = [1, 2, 3];
+  const extra = Math.floor(Math.random() * 5) + 1;
+  const paginas = [...new Set([...basePages, extra, extra + 1])];
 
-  for (const page of paginas) {
-    try {
-      const data = await httpClient<EmbedListResponse>(API_ROTAS.buscaFilmes, {
-        parametros: { q: cfg.query, page },
-      });
-      candidatos.push(...mapearListaPaginada(data, "filme").itens);
-    } catch {
-      /* pagina falhou */
-    }
-  }
+  const candidatos = await buscarPaginas(cfg.queries, paginas);
 
   const unicos = new Map<string, ConteudoResumo>();
   for (const item of candidatos) {
-    if (idOk(item) && !unicos.has(item.id)) unicos.set(item.id, item);
+    if (idOk(item) && !unicos.has(item.id)) {
+      unicos.set(item.id, item);
+    }
   }
 
-  let pool = [...unicos.values()].filter((i) => {
-    if (!pertenceAoGenero(i, cfg.keywords)) return false;
-    if (i.ano > 0 && (i.ano < anoMin || i.ano > anoMax)) return false;
-    if (notaMinima > 0 && (i.nota ?? 0) < notaMinima) return false;
-    return true;
-  });
+  const lista = [...unicos.values()];
 
-  // fallback: se filtro de genero zerou tudo, tenta so keyword na busca sem exigir generos[]
+  // 1) filtro completo
+  let pool = lista.filter(
+    (i) =>
+      passaGenero(i, cfg.keywords) &&
+      passaAno(i, anoMin, anoMax) &&
+      passaNota(i, notaMinima)
+  );
+
+  // 2) afrouxa nota (-1)
+  if (pool.length < quantidade && notaMinima > 0) {
+    pool = lista.filter(
+      (i) =>
+        passaGenero(i, cfg.keywords) &&
+        passaAno(i, anoMin, anoMax) &&
+        passaNota(i, Math.max(0, notaMinima - 1))
+    );
+  }
+
+  // 3) so genero + nota (ignora epoca)
   if (pool.length < quantidade) {
-    const frouxo = [...unicos.values()].filter((i) => {
-      if (i.ano > 0 && (i.ano < anoMin || i.ano > anoMax)) return false;
-      if (notaMinima > 0 && (i.nota ?? 0) < notaMinima) return false;
-      // ainda exclui se generos existem e NAO batem
-      if ((i.generos ?? []).length > 0 && !pertenceAoGenero(i, cfg.keywords)) {
-        return false;
-      }
-      return true;
-    });
-    pool = frouxo;
+    pool = lista.filter(
+      (i) => passaGenero(i, cfg.keywords) && passaNota(i, Math.min(notaMinima, 6))
+    );
+  }
+
+  // 4) so genero (ou confia na busca)
+  if (pool.length < quantidade) {
+    pool = lista.filter((i) => passaGenero(i, cfg.keywords));
+  }
+
+  // 5) qualquer candidato valido da busca
+  if (pool.length < quantidade) {
+    pool = lista;
   }
 
   return shuffle(pool).slice(0, quantidade);
