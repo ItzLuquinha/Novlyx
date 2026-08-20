@@ -194,11 +194,15 @@ export function PlayerVideo({
   }, [conteudo.id, ehSerie, season, episode, fonteId]);
 
   const fonteAtual = FONTES_PLAYER.find((f) => f.id === fonteId);
-  const totalTemp =
-    conteudo.temporadas?.length ?? conteudo.totalTemporadas ?? 1;
-  const epsNaTemp =
-    conteudo.temporadas?.find((t) => t.numero === season)?.totalEpisodios ??
-    12;
+  const totalTemp = Math.max(
+    1,
+    conteudo.temporadas?.length || conteudo.totalTemporadas || 1
+  );
+  const epsNaTemp = Math.max(
+    1,
+    conteudo.temporadas?.find((t) => t.numero === season)?.totalEpisodios ||
+      24
+  );
 
   function marcarPonto(segundos: number) {
     const t = Math.max(0, Math.min(duracaoEstimada, Math.floor(segundos)));
@@ -395,8 +399,12 @@ export function PlayerVideo({
                   className="ml-1 rounded border border-white/10 bg-black px-1.5 py-1 text-xs"
                   value={season}
                   onChange={(e) => {
-                    setSeason(Number(e.target.value));
+                    const n = Number(e.target.value);
+                    setSeason(n);
                     setEpisode(1);
+                    tempoRef.current = 0;
+                    setTempoAtual(0);
+                    setContando(false);
                   }}
                 >
                   {Array.from({ length: totalTemp }, (_, i) => i + 1).map(

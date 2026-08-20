@@ -41,6 +41,13 @@ export interface EmbedItem {
   crew?: { name: string; job?: string }[];
   number_of_seasons?: number;
   number_of_episodes?: number;
+  seasons?: {
+    season_number?: number;
+    name?: string;
+    air_date?: string;
+    episode_count?: number;
+    poster?: string | null;
+  }[];
 }
 
 export interface EmbedListResponse {
@@ -220,39 +227,71 @@ export function mapearDetalhe(
   const elenco = castList.slice(0, 12).map((c) => c.name).filter(Boolean);
   const diretor = crewList.find((c) => c.job === "Director")?.name;
 
-  const totalTemp = item.number_of_seasons || 0;
+  const seasonsApi = (item.seasons ?? []).filter(
+    (s) => (s.season_number ?? 0) >= 1
+  );
+  const totalTemp =
+    item.number_of_seasons ||
+    seasonsApi.length ||
+    0;
   const totalEps = item.number_of_episodes || 0;
-  
-  const temporadas =
-    totalTemp > 0
-      ? Array.from({ length: Math.min(totalTemp, 30) }, (_, i) => {
-          const num = i + 1;
-          const epsNaTemp =
-            totalTemp > 0
-              ? Math.max(1, Math.ceil(totalEps / totalTemp) || 12)
-              : 12;
-          return {
-            id: String(num),
-            numero: num,
-            titulo: `Temporada ${num}`,
-            totalEpisodios: epsNaTemp,
-            posterUrl: resumo.posterUrl,
-            episodios: Array.from({ length: Math.min(epsNaTemp, 40) }, (_, j) => {
-              const ep = j + 1;
-              return {
-                id: String(ep),
-                numero: ep,
-                temporadaId: String(num),
-                titulo: `Episódio ${ep}`,
-                descricao: "",
-                duracaoMinutos: 45,
-                posterUrl: resumo.posterUrl,
-                dataLancamento: "",
-              };
-            }),
-          };
-        })
-      : undefined;
+
+  function montarEpisodios(
+    numTemp: number,
+    qtd: number,
+    poster: string
+  ) {
+    const n = Math.max(1, Math.min(qtd || 12, 60));
+    return Array.from({ length: n }, (_, j) => {
+      const ep = j + 1;
+      return {
+        id: String(ep),
+        numero: ep,
+        temporadaId: String(numTemp),
+        titulo: `Episódio ${ep}`,
+        descricao: "",
+        duracaoMinutos: 45,
+        posterUrl: poster,
+        dataLancamento: "",
+      };
+    });
+  }
+
+  let temporadas =
+    seasonsApi.length > 0
+      ? seasonsApi
+          .slice()
+          .sort((a, b) => (a.season_number ?? 0) - (b.season_number ?? 0))
+          .map((s) => {
+            const num = s.season_number ?? 1;
+            const epsNaTemp = s.episode_count || 12;
+            const poster = s.poster || resumo.posterUrl;
+            return {
+              id: String(num),
+              numero: num,
+              titulo: s.name || `Temporada ${num}`,
+              totalEpisodios: epsNaTemp,
+              posterUrl: poster,
+              episodios: montarEpisodios(num, epsNaTemp, poster),
+            };
+          })
+      : totalTemp > 0
+        ? Array.from({ length: Math.min(totalTemp, 40) }, (_, i) => {
+            const num = i + 1;
+            const epsNaTemp =
+              totalEps > 0
+                ? Math.max(1, Math.ceil(totalEps / totalTemp) || 12)
+                : 12;
+            return {
+              id: String(num),
+              numero: num,
+              titulo: `Temporada ${num}`,
+              totalEpisodios: epsNaTemp,
+              posterUrl: resumo.posterUrl,
+              episodios: montarEpisodios(num, epsNaTemp, resumo.posterUrl),
+            };
+          })
+        : undefined;
 
   return {
     ...resumo,
@@ -261,7 +300,7 @@ export function mapearDetalhe(
     diretor,
     elenco,
     trailerUrl: item.trailer,
-    totalTemporadas: totalTemp || undefined,
+    totalTemporadas: (temporadas?.length || totalTemp) || undefined,
     temporadas,
     paisOrigem: item.production_countries?.[0] || "-",
     idiomaOriginal: item.original_language || resumo.idiomaOriginal || "-",
