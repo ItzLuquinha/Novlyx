@@ -9,7 +9,7 @@ const CHAVE = "novlyx-perfil";
 const PERFIL_PADRAO: Perfil = {
   id: "perfil-1",
   nome: "Convidado",
-  avatarUrl: gerarPosterPlaceholder("Perfil", { largura: 200, altura: 200 }),
+  avatarUrl: "/placeholders/poster-default.svg",
   principal: true,
 };
 

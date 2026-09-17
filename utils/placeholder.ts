@@ -47,7 +47,7 @@ export function gerarPosterPlaceholder(
   const indice = hashTexto(titulo) % PALETA_FUNDOS.length;
   const paleta = PALETA_FUNDOS[indice] ?? PALETA_FUNDOS[0]!;
   const [corClara, corEscura] = paleta;
-  const linhas = quebrarLinhas(titulo.toUpperCase(), 16);
+  const linhas = quebrarLinhas((titulo || "NOVLYX").toUpperCase(), 16);
   const centroY = altura / 2;
   const gradId = `g${hashTexto(titulo)}`;
 
@@ -70,7 +70,7 @@ export function gerarPosterPlaceholder(
       .join("")}
   </svg>`;
 
-  return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 
 export function gerarBannerPlaceholder(
@@ -98,7 +98,7 @@ export function gerarBannerPlaceholder(
     <rect width="${largura}" height="${altura}" fill="url(#glow${gradId})"/>
   </svg>`;
 
-  return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 
 function escaparXml(texto: string): string {
