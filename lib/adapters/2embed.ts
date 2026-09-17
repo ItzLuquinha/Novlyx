@@ -296,7 +296,13 @@ export function mapearDetalhe(
     trailerUrl: item.trailer,
     totalTemporadas: temporadas?.filter((t) => t.numero > 0).length,
     temporadas,
-    paisOrigem: (Array.isArray(item.production_countries) && item.production_countries[0]) || (Array.isArray((item as { origin_country?: string[] }).origin_country) && (item as { origin_country?: string[] }).origin_country?.[0]) || "-",
+    paisOrigem: (() => {
+      const pc = item.production_countries;
+      if (Array.isArray(pc) && typeof pc[0] === "string" && pc[0]) return pc[0];
+      const oc = (item as EmbedItem & { origin_country?: string[] }).origin_country;
+      if (Array.isArray(oc) && typeof oc[0] === "string" && oc[0]) return oc[0];
+      return "-";
+    })(),
     idiomaOriginal: item.original_language || resumo.idiomaOriginal || "-",
     classificacaoIndicativa: "-",
     semelhantes: [],

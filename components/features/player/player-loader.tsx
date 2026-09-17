@@ -1,9 +1,40 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ConteudoDetalhado } from "@/types";
+import { ConteudoDetalhado, CategoriaConteudo } from "@/types";
 import { PlayerPageClient } from "@/components/features/player/player-page-client";
 import { categoriaRotaSegura, idConteudoSeguro } from "@/lib/url-segura";
+import { idsParaConsulta } from "@/lib/identidade";
+import { EmbedItem, mapearDetalhe } from "@/lib/adapters/2embed";
+
+async function buscarItem(
+  categoria: CategoriaConteudo,
+  id: string
+): Promise<EmbedItem | null> {
+  const ids = idsParaConsulta(id);
+  const imdb = ids.imdbId;
+  const tmdb = ids.tmdbId;
+  const ehFilme = categoria === "filme";
+  const base = ehFilme ? "/api/proxy/movie" : "/api/proxy/tv";
+  const urls: string[] = [];
+  if (imdb) urls.push(`${base}?imdb_id=${encodeURIComponent(imdb)}`);
+  if (tmdb) urls.push(`${base}?tmdb_id=${encodeURIComponent(tmdb)}`);
+  if (!imdb && !tmdb) {
+    if (/^tt\d+/i.test(id)) urls.push(`${base}?imdb_id=${encodeURIComponent(id)}`);
+    else if (/^\d+$/.test(id)) urls.push(`${base}?tmdb_id=${encodeURIComponent(id)}`);
+  }
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) continue;
+      const data = (await res.json()) as EmbedItem;
+      if (data && (data.tmdb_id || data.imdb_id || data.name || data.title)) return data;
+    } catch {
+      /* next */
+    }
+  }
+  return null;
+}
 
 export function PlayerLoader({
   categoria: catRaw,
@@ -25,16 +56,10 @@ export function PlayerLoader({
     let cancel = false;
     (async () => {
       try {
-        const res = await fetch(
-          `/api/conteudo/${encodeURIComponent(categoria)}/${encodeURIComponent(idLimpo)}`,
-          { cache: "no-store" }
-        );
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
-          throw new Error(body.erro || `Erro ${res.status}`);
-        }
-        const data = (await res.json()) as ConteudoDetalhado;
-        if (!cancel) setConteudo(data);
+        const item = await buscarItem(categoria, idLimpo);
+        if (!item) throw new Error("Titulo nao encontrado");
+        const detalhe = mapearDetalhe(item, categoria);
+        if (!cancel) setConteudo(detalhe);
       } catch (e) {
         if (!cancel) setErro(e instanceof Error ? e.message : "Falha");
       }
@@ -50,13 +75,16 @@ export function PlayerLoader({
         <div>
           <p className="mb-2">Nao foi possivel abrir o player</p>
           <p className="text-sm text-white/50">{erro}</p>
+          <a href="/" className="mt-4 inline-block text-sm text-novlyx-accent underline">
+            Voltar
+          </a>
         </div>
       </div>
     );
   }
 
   if (!conteudo) {
-    return <div className="aspect-video w-full bg-black" />;
+    return <div className="flex min-h-screen items-center justify-center bg-black text-sm text-white/40">Carregando...</div>;
   }
 
   return <PlayerPageClient conteudo={conteudo} />;

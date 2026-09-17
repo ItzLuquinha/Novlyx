@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import { getConteudoPorCategoria } from "@/services";
+import { getFilmePorId } from "@/services/filmes.service";
+import { getSeriePorId } from "@/services/series.service";
+import { getAnimePorId } from "@/services/animes.service";
+import { getDoramaPorId } from "@/services/doramas.service";
 import { categoriaRotaSegura, idConteudoSeguro } from "@/lib/url-segura";
 
 export async function GET(
@@ -14,21 +17,18 @@ export async function GET(
       return NextResponse.json({ erro: "Parametros invalidos" }, { status: 400 });
     }
 
-    const conteudo = await getConteudoPorCategoria(categoria, idLimpo);
+    let conteudo = null;
+    if (categoria === "filme") conteudo = await getFilmePorId(idLimpo);
+    else if (categoria === "serie") conteudo = await getSeriePorId(idLimpo);
+    else if (categoria === "anime") conteudo = await getAnimePorId(idLimpo);
+    else if (categoria === "dorama") conteudo = await getDoramaPorId(idLimpo);
+
     if (!conteudo) {
       return NextResponse.json({ erro: "Conteudo nao encontrado" }, { status: 404 });
     }
-
-    return NextResponse.json(conteudo, {
-      headers: {
-        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
-      },
-    });
+    return NextResponse.json(conteudo);
   } catch (erro) {
     console.error("[api/conteudo]", erro);
-    return NextResponse.json(
-      { erro: "Falha ao carregar conteudo" },
-      { status: 500 }
-    );
+    return NextResponse.json({ erro: "Falha ao carregar" }, { status: 500 });
   }
 }

@@ -1,10 +1,46 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ConteudoDetalhado } from "@/types";
+import { ConteudoDetalhado, CategoriaConteudo } from "@/types";
 import { ConteudoDetalheClient } from "@/components/features/conteudo-detalhe-client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { categoriaRotaSegura, idConteudoSeguro } from "@/lib/url-segura";
+import { idsParaConsulta } from "@/lib/identidade";
+import { EmbedItem, mapearDetalhe } from "@/lib/adapters/2embed";
+
+async function buscarItem(
+  categoria: CategoriaConteudo,
+  id: string
+): Promise<EmbedItem | null> {
+  const ids = idsParaConsulta(id);
+  const imdb = ids.imdbId;
+  const tmdb = ids.tmdbId;
+
+  const ehFilme = categoria === "filme";
+  const base = ehFilme ? "/api/proxy/movie" : "/api/proxy/tv";
+
+  const urls: string[] = [];
+  if (imdb) urls.push(`${base}?imdb_id=${encodeURIComponent(imdb)}`);
+  if (tmdb) urls.push(`${base}?tmdb_id=${encodeURIComponent(tmdb)}`);
+  if (!imdb && !tmdb) {
+    if (/^tt\d+/i.test(id)) urls.push(`${base}?imdb_id=${encodeURIComponent(id)}`);
+    else if (/^\d+$/.test(id)) urls.push(`${base}?tmdb_id=${encodeURIComponent(id)}`);
+  }
+
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) continue;
+      const data = (await res.json()) as EmbedItem;
+      if (data && (data.tmdb_id || data.imdb_id || data.name || data.title)) {
+        return data;
+      }
+    } catch {
+      /* tenta proxima */
+    }
+  }
+  return null;
+}
 
 export function ConteudoDetalheLoader({
   categoria: catRaw,
@@ -32,16 +68,10 @@ export function ConteudoDetalheLoader({
 
     (async () => {
       try {
-        const res = await fetch(
-          `/api/conteudo/${encodeURIComponent(categoria)}/${encodeURIComponent(idLimpo)}`,
-          { cache: "no-store" }
-        );
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
-          throw new Error(body.erro || `Erro ${res.status}`);
-        }
-        const data = (await res.json()) as ConteudoDetalhado;
-        if (!cancel) setConteudo(data);
+        const item = await buscarItem(categoria, idLimpo);
+        if (!item) throw new Error("Titulo nao encontrado na API");
+        const detalhe = mapearDetalhe(item, categoria);
+        if (!cancel) setConteudo(detalhe);
       } catch (e) {
         if (!cancel) {
           setErro(e instanceof Error ? e.message : "Falha ao carregar");
@@ -61,7 +91,7 @@ export function ConteudoDetalheLoader({
     return (
       <div className="container space-y-6 py-10">
         <Skeleton className="h-[40vh] w-full rounded-xl" />
-        <Skeleton className="h-8 w-2/3" />
+        <Skeleton className="h-8 w-3/4" />
         <Skeleton className="h-24 w-full" />
       </div>
     );
@@ -74,7 +104,7 @@ export function ConteudoDetalheLoader({
           Nao foi possivel abrir este titulo
         </p>
         <p className="max-w-md text-sm text-novlyx-gray-light">
-          {erro || "Conteudo indisponivel no momento. Tente outro ou volte mais tarde."}
+          {erro || "Conteudo indisponivel no momento."}
         </p>
         <a href="/" className="text-sm text-novlyx-accent underline">
           Voltar ao inicio
