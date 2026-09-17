@@ -3,6 +3,14 @@ import { chaveEstavel } from "@/lib/identidade";
 
 const CHAVE_STORAGE = "novlyx:minha-lista";
 
+type ItemRef = {
+  categoria: ItemMinhaLista["categoria"];
+  tmdbId?: string;
+  imdbId?: string;
+  idInterno?: string;
+  conteudoId?: string;
+};
+
 function migrar(raw: Record<string, unknown>): ItemMinhaLista {
   const categoria = (raw.categoria as ItemMinhaLista["categoria"]) || "filme";
   const conteudoId = String(raw.conteudoId || raw.idInterno || "");
@@ -21,7 +29,7 @@ function migrar(raw: Record<string, unknown>): ItemMinhaLista {
   };
 }
 
-function chaveItem(item: Pick<ItemMinhaLista, "categoria" | "tmdbId" | "imdbId" | "idInterno" | "conteudoId">) {
+function chaveItem(item: ItemRef) {
   return chaveEstavel({
     categoria: item.categoria,
     tmdbId: item.tmdbId,
@@ -56,13 +64,12 @@ export function getMinhaLista(): ItemMinhaLista[] {
   );
 }
 
-export function estaNaMinhaLista(
-  item: Pick<ItemMinhaLista, "categoria" | "tmdbId" | "imdbId" | "idInterno" | "conteudoId"> | string
-): boolean {
+export function estaNaMinhaLista(item: ItemRef | string): boolean {
   const lista = lerStorage();
   if (typeof item === "string") {
     return lista.some(
-      (i) => i.conteudoId === item || i.idInterno === item || chaveItem(i) === item
+      (i) =>
+        i.conteudoId === item || i.idInterno === item || chaveItem(i) === item
     );
   }
   const chave = chaveItem(item);
@@ -70,7 +77,9 @@ export function estaNaMinhaLista(
 }
 
 export function adicionarNaMinhaLista(
-  item: Omit<ItemMinhaLista, "adicionadoEm" | "idInterno"> & { idInterno?: string }
+  item: Omit<ItemMinhaLista, "adicionadoEm" | "idInterno"> & {
+    idInterno?: string;
+  }
 ) {
   const itens = lerStorage();
   if (estaNaMinhaLista(item)) return;
@@ -84,9 +93,7 @@ export function adicionarNaMinhaLista(
   escreverStorage([...itens, novoItem]);
 }
 
-export function removerDaMinhaLista(
-  item: Pick<ItemMinhaLista, "categoria" | "tmdbId" | "imdbId" | "idInterno" | "conteudoId"> | string
-) {
+export function removerDaMinhaLista(item: ItemRef | string) {
   const itens = lerStorage().filter((atual) => {
     if (typeof item === "string") {
       return (
@@ -101,7 +108,9 @@ export function removerDaMinhaLista(
 }
 
 export function alternarMinhaLista(
-  item: Omit<ItemMinhaLista, "adicionadoEm" | "idInterno"> & { idInterno?: string }
+  item: Omit<ItemMinhaLista, "adicionadoEm" | "idInterno"> & {
+    idInterno?: string;
+  }
 ) {
   if (estaNaMinhaLista(item)) {
     removerDaMinhaLista(item);

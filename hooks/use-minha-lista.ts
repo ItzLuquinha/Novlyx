@@ -33,17 +33,23 @@ export function useMinhaLista() {
   return { itens, carregado, alternar };
 }
 
-export function useEstaNaMinhaLista(
-  item:
-    | Pick<
-        ItemMinhaLista,
-        "categoria" | "tmdbId" | "imdbId" | "idInterno" | "conteudoId"
-      >
-    | string
-) {
+type ItemRef = {
+  categoria: ItemMinhaLista["categoria"];
+  tmdbId?: string;
+  imdbId?: string;
+  idInterno?: string;
+  conteudoId?: string;
+};
+
+export function useEstaNaMinhaLista(item: ItemRef | string) {
   const chave = useMemo(() => {
     if (typeof item === "string") return item;
-    return chaveEstavel(item);
+    return chaveEstavel({
+      categoria: item.categoria,
+      tmdbId: item.tmdbId,
+      imdbId: item.imdbId,
+      idInterno: item.idInterno || item.conteudoId,
+    });
   }, [item]);
 
   const [presente, setPresente] = useState(false);
