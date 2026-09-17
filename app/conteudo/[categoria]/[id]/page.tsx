@@ -10,26 +10,31 @@ interface Props {
 }
 
 export default async function PaginaConteudoCategoria({ params }: Props) {
-  const { categoria: catRaw, id } = await params;
-  const categoria = categoriaRotaSegura(catRaw);
-  const idLimpo = idConteudoSeguro(id);
-  if (!categoria || !idLimpo) notFound();
-
-  let conteudo = null;
   try {
-    conteudo = await getConteudoPorCategoria(categoria, idLimpo);
-  } catch (erro) {
-    console.error("[PaginaConteudo]", categoria, idLimpo, erro);
-  }
-  if (!conteudo) notFound();
+    const { categoria: catRaw, id } = await params;
+    const categoria = categoriaRotaSegura(catRaw);
+    const idLimpo = idConteudoSeguro(id);
+    if (!categoria || !idLimpo) notFound();
 
-  return (
-    <>
-      <Header />
-      <main>
-        <ConteudoDetalheClient conteudo={conteudo} />
-      </main>
-      <Footer />
-    </>
-  );
+    let conteudo = null;
+    try {
+      conteudo = await getConteudoPorCategoria(categoria, idLimpo);
+    } catch (erro) {
+      console.error("[PaginaConteudo]", categoria, idLimpo, erro);
+    }
+    if (!conteudo) notFound();
+
+    return (
+      <>
+        <Header />
+        <main>
+          <ConteudoDetalheClient conteudo={conteudo} />
+        </main>
+        <Footer />
+      </>
+    );
+  } catch (erro) {
+    console.error("[PaginaConteudo] fatal", erro);
+    notFound();
+  }
 }

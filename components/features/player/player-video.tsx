@@ -55,7 +55,7 @@ export function PlayerVideo({
     if (ehSerie) {
       const ep = conteudo.temporadas
         ?.find((t) => t.numero === season)
-        ?.episodios.find((e) => e.numero === episode);
+        ?.episodios?.find((e) => e.numero === episode);
       if (ep?.duracaoMinutos && ep.duracaoMinutos > 5) {
         return ep.duracaoMinutos * 60;
       }
@@ -274,10 +274,18 @@ export function PlayerVideo({
     temporadaAtual?.episodios?.length
       ? temporadaAtual.episodios
       : temporadaAtual?.totalEpisodios
-        ? Array.from({ length: temporadaAtual.totalEpisodios }, (_, i) => ({
-            id: String(i + 1),
-            numero: i + 1,
-          }))
+        ? Array.from(
+            {
+              length: Math.min(
+                200,
+                Math.max(0, Math.floor(temporadaAtual.totalEpisodios))
+              ),
+            },
+            (_, i) => ({
+              id: String(i + 1),
+              numero: i + 1,
+            })
+          )
         : [];
 
   function marcarPonto(segundos: number) {

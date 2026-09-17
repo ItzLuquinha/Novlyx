@@ -182,27 +182,17 @@ function estimarQualidade(item: EmbedItem, emCinema: boolean): QualidadeVideo {
   return "FULL HD";
 }
 
+/** Nao gera lista completa no servidor (evita OOM/500 em animes longos). */
 function montarEpisodiosReais(
-  numTemp: number,
-  qtd: number,
-  poster: string
+  _numTemp: number,
+  _qtd: number,
+  _poster: string
 ): Temporada["episodios"] {
-  const n = Math.max(0, Math.floor(qtd));
-  if (n <= 0) return [];
-  return Array.from({ length: n }, (_, j) => {
-    const ep = j + 1;
-    return {
-      id: String(ep),
-      numero: ep,
-      temporadaId: String(numTemp),
-      titulo: `Episódio ${ep}`,
-      descricao: "",
-      duracaoMinutos: 0,
-      posterUrl: poster,
-      dataLancamento: "",
-    };
-  });
+  return [];
 }
+
+const MAX_EPISODIOS_POR_TEMP = 500;
+const MAX_TEMPORADAS = 40;
 
 export function mapearResumo(
   item: EmbedItem,
@@ -230,7 +220,7 @@ export function mapearResumo(
     tituloOriginal: original || undefined,
     categoria,
     ano: anoDe(item),
-    nota: Number(item.vote_average?.toFixed?.(1) ?? item.vote_average ?? 0),
+    nota: Number(Number(item.vote_average ?? 0).toFixed(1)),
     qualidade: estimarQualidade(item, emCinema),
     posterUrl: item.poster || "/placeholders/poster-default.svg",
     bannerUrl: banner,
@@ -260,9 +250,12 @@ export function mapearDetalhe(
   let temporadas: Temporada[] | undefined;
 
   if (seasonsApi.length > 0) {
-    temporadas = seasonsApi.map((s) => {
+    temporadas = seasonsApi.slice(0, MAX_TEMPORADAS).map((s) => {
       const num = s.season_number ?? 0;
-      const epsNaTemp = Math.max(0, Math.floor(s.episode_count || 0));
+      const epsNaTemp = Math.min(
+        MAX_EPISODIOS_POR_TEMP,
+        Math.max(0, Math.floor(Number(s.episode_count) || 0))
+      );
       const poster = s.poster || resumo.posterUrl;
       return {
         id: String(num),
@@ -270,24 +263,22 @@ export function mapearDetalhe(
         titulo: s.name || (num === 0 ? "Especiais" : `Temporada ${num}`),
         totalEpisodios: epsNaTemp,
         posterUrl: poster,
-        episodios: montarEpisodiosReais(num, epsNaTemp, poster),
+        episodios: [],
       };
     });
   } else if (item.number_of_seasons && item.number_of_seasons > 0) {
-    temporadas = Array.from(
-      { length: item.number_of_seasons },
-      (_, i) => {
-        const num = i + 1;
-        return {
-          id: String(num),
-          numero: num,
-          titulo: `Temporada ${num}`,
-          totalEpisodios: 0,
-          posterUrl: resumo.posterUrl,
-          episodios: [],
-        };
-      }
-    );
+    const qtdTemp = Math.min(MAX_TEMPORADAS, Math.floor(item.number_of_seasons));
+    temporadas = Array.from({ length: qtdTemp }, (_, i) => {
+      const num = i + 1;
+      return {
+        id: String(num),
+        numero: num,
+        titulo: `Temporada ${num}`,
+        totalEpisodios: 0,
+        posterUrl: resumo.posterUrl,
+        episodios: [],
+      };
+    });
   }
 
   return {
