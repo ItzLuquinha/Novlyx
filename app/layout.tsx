@@ -3,6 +3,7 @@ import "./globals.css";
 import { QueryProvider } from "@/contexts/query-provider";
 import { PerfilProvider } from "@/contexts/perfil-context";
 import { AvisoAdguard } from "@/components/features/aviso-adguard";
+import { DebugConsole } from "@/components/features/debug-console";
 
 export const metadata: Metadata = {
   title: "NOVLYX - Filmes, Series e Animes",
@@ -21,6 +22,7 @@ export default function RootLayout({
         <QueryProvider>
           <PerfilProvider>
             <AvisoAdguard />
+            <DebugConsole />
             {children}
           </PerfilProvider>
         </QueryProvider>
