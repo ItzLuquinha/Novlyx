@@ -69,13 +69,16 @@ export function estaNaMinhaLista(
   return lista.some((i) => chaveItem(i) === chave);
 }
 
-export function adicionarNaMinhaLista(item: Omit<ItemMinhaLista, "adicionadoEm">) {
+export function adicionarNaMinhaLista(
+  item: Omit<ItemMinhaLista, "adicionadoEm" | "idInterno"> & { idInterno?: string }
+) {
   const itens = lerStorage();
   if (estaNaMinhaLista(item)) return;
+  const idInterno = item.idInterno || item.conteudoId;
   const novoItem: ItemMinhaLista = {
     ...item,
-    idInterno: item.idInterno || item.conteudoId,
-    conteudoId: item.idInterno || item.conteudoId,
+    idInterno,
+    conteudoId: idInterno,
     adicionadoEm: new Date().toISOString(),
   };
   escreverStorage([...itens, novoItem]);
@@ -97,7 +100,9 @@ export function removerDaMinhaLista(
   escreverStorage(itens);
 }
 
-export function alternarMinhaLista(item: Omit<ItemMinhaLista, "adicionadoEm">) {
+export function alternarMinhaLista(
+  item: Omit<ItemMinhaLista, "adicionadoEm" | "idInterno"> & { idInterno?: string }
+) {
   if (estaNaMinhaLista(item)) {
     removerDaMinhaLista(item);
     return false;

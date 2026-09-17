@@ -60,8 +60,12 @@ export function useProgressoConteudo(
 
   const salvar = useCallback(
     (
-      dados: Omit<ProgressoContinuarAssistindo, "atualizadoEm" | "progressKey"> & {
+      dados: Omit<
+        ProgressoContinuarAssistindo,
+        "atualizadoEm" | "progressKey" | "idInterno"
+      > & {
         progressKey?: string;
+        idInterno?: string;
       }
     ) => {
       salvarProgresso(dados);

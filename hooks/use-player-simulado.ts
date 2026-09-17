@@ -60,6 +60,7 @@ export function usePlayerSimulado({
     const intervaloSalvar = setInterval(() => {
       salvarProgresso({
         conteudoId,
+        idInterno: conteudoId,
         categoria,
         titulo,
         posterUrl,
@@ -90,6 +91,7 @@ export function usePlayerSimulado({
     return () => {
       salvarProgresso({
         conteudoId,
+        idInterno: conteudoId,
         categoria,
         titulo,
         posterUrl,

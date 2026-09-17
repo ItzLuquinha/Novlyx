@@ -18,10 +18,17 @@ export function useMinhaLista() {
     setCarregado(true);
   }, []);
 
-  const alternar = useCallback((item: Omit<ItemMinhaLista, "adicionadoEm">) => {
-    alternarMinhaLista(item);
-    setItens(getMinhaLista());
-  }, []);
+  const alternar = useCallback(
+    (
+      item: Omit<ItemMinhaLista, "adicionadoEm" | "idInterno"> & {
+        idInterno?: string;
+      }
+    ) => {
+      alternarMinhaLista(item);
+      setItens(getMinhaLista());
+    },
+    []
+  );
 
   return { itens, carregado, alternar };
 }

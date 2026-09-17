@@ -79,8 +79,9 @@ export function getHistorico(): ItemHistorico[] {
 }
 
 export function registrarHistorico(
-  item: Omit<ItemHistorico, "assistidoEm" | "historicoKey"> & {
+  item: Omit<ItemHistorico, "assistidoEm" | "historicoKey" | "idInterno"> & {
     historicoKey?: string;
+    idInterno?: string;
   },
   opcoes?: { forcar?: boolean }
 ) {

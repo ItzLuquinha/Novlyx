@@ -97,8 +97,12 @@ export function getProgressoConteudo(
 }
 
 export function salvarProgresso(
-  progresso: Omit<ProgressoContinuarAssistindo, "atualizadoEm" | "progressKey"> & {
+  progresso: Omit<
+    ProgressoContinuarAssistindo,
+    "atualizadoEm" | "progressKey" | "idInterno"
+  > & {
     progressKey?: string;
+    idInterno?: string;
   }
 ) {
   if (progresso.tempoAtualSegundos < 15 && !progresso.episodioNumero) {
