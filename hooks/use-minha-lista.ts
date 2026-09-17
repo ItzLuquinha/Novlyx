@@ -37,20 +37,16 @@ export function useEstaNaMinhaLista(
   const chave = useMemo(() => {
     if (typeof item === "string") return item;
     return chaveEstavel(item);
-  }, [
-    typeof item === "string"
-      ? item
-      : `${item.categoria}:${item.tmdbId || ""}:${item.imdbId || ""}:${item.idInterno || item.conteudoId}`,
-  ]);
+  }, [item]);
 
   const [presente, setPresente] = useState(false);
 
   useEffect(() => {
-    setPresente(estaNaMinhaLista(typeof item === "string" ? item : item));
+    setPresente(estaNaMinhaLista(item));
   }, [chave, item]);
 
   const atualizar = useCallback(() => {
-    setPresente(estaNaMinhaLista(typeof item === "string" ? item : item));
+    setPresente(estaNaMinhaLista(item));
   }, [item]);
 
   return { presente, atualizar };

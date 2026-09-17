@@ -1,6 +1,6 @@
-import { hrefConteudo, hrefPlayer } from "@/lib/identidade";
 "use client";
 
+import { hrefConteudo, hrefPlayer } from "@/lib/identidade";
 import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
