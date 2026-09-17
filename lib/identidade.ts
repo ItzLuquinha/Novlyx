@@ -188,7 +188,7 @@ export function hrefConteudo(item: {
 }): string {
   const { categoria, id } = slugRota(item);
   if (!id) return "/";
-  return `/conteudo/${categoria}/${encodeURIComponent(id)}`;
+  return `/titulo?c=${encodeURIComponent(categoria)}&id=${encodeURIComponent(id)}`;
 }
 
 export function hrefPlayer(
@@ -204,11 +204,16 @@ export function hrefPlayer(
 ): string {
   const { categoria, id } = slugRota(item);
   if (!id) return "/";
-  const base = `/player/${categoria}/${encodeURIComponent(id)}`;
+  const q = new URLSearchParams();
+  q.set("c", categoria);
+  q.set("id", id);
   if (ehSerieLike(item.categoria) && season && episode) {
-    return `${base}?s=${season}&e=${episode}&temporada=${season}&episodio=${episode}`;
+    q.set("s", String(season));
+    q.set("e", String(episode));
+    q.set("temporada", String(season));
+    q.set("episodio", String(episode));
   }
-  return base;
+  return `/assistir?${q.toString()}`;
 }
 
 export function hrefPlayerDeIds(
@@ -223,11 +228,16 @@ export function hrefPlayerDeIds(
     ids.categoria && ehCategoriaValida(ids.categoria)
       ? ids.categoria
       : categoria;
-  const base = `/player/${cat}/${encodeURIComponent(id)}`;
+  const q = new URLSearchParams();
+  q.set("c", cat);
+  q.set("id", id);
   if (ehSerieLike(cat) && season && episode) {
-    return `${base}?s=${season}&e=${episode}&temporada=${season}&episodio=${episode}`;
+    q.set("s", String(season));
+    q.set("e", String(episode));
+    q.set("temporada", String(season));
+    q.set("episodio", String(episode));
   }
-  return base;
+  return `/assistir?${q.toString()}`;
 }
 
 export function hrefConteudoDeIds(
@@ -240,7 +250,8 @@ export function hrefConteudoDeIds(
     ids.categoria && ehCategoriaValida(ids.categoria)
       ? ids.categoria
       : categoria;
-  return `/conteudo/${cat}/${encodeURIComponent(id)}`;
+  if (!id) return "/";
+  return `/titulo?c=${encodeURIComponent(cat)}&id=${encodeURIComponent(id)}`;
 }
 
 export function idsDeResumo(item: ConteudoResumo): {
