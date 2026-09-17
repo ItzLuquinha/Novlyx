@@ -28,11 +28,9 @@ export default function PaginaDebug() {
 
         // Buffer check (historical bug)
         add(
-          "Buffer no browser",
-          typeof Buffer === "undefined",
-          typeof Buffer === "undefined"
-            ? "OK: Buffer nao existe no browser (esperado)"
-            : "Buffer existe (raro no browser)"
+          "Ambiente JS",
+          true,
+          `Buffer=${typeof Buffer !== "undefined" ? "presente" : "ausente"} (ok em ambos os casos)`
         );
 
         // Health

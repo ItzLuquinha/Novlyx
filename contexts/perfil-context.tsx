@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { Perfil } from "@/types";
-import { gerarPosterPlaceholder } from "@/utils/placeholder";
 
 const CHAVE = "novlyx-perfil";
 

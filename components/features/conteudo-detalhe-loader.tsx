@@ -1,21 +1,27 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ConteudoDetalhado, CategoriaConteudo } from "@/types";
+import type { ConteudoDetalhado, CategoriaConteudo } from "@/types";
 import { ConteudoDetalheClient } from "@/components/features/conteudo-detalhe-client";
-import { Skeleton } from "@/components/ui/skeleton";
-import { categoriaRotaSegura, idConteudoSeguro } from "@/lib/url-segura";
-import { idsParaConsulta } from "@/lib/identidade";
-import { EmbedItem, mapearDetalhe } from "@/lib/adapters/2embed";
 
-async function buscarItem(
-  categoria: CategoriaConteudo,
-  id: string
-): Promise<EmbedItem | null> {
+function catOk(v: string): v is CategoriaConteudo {
+  return v === "filme" || v === "serie" || v === "anime" || v === "dorama";
+}
+
+async function carregar(
+  categoriaRaw: string,
+  idRaw: string
+): Promise<ConteudoDetalhado> {
+  const categoria = catOk(categoriaRaw) ? categoriaRaw : "serie";
+  const id = decodeURIComponent(idRaw || "").trim();
+  if (!id) throw new Error("ID vazio");
+
+  const { idsParaConsulta } = await import("@/lib/identidade");
+  const { mapearDetalhe } = await import("@/lib/adapters/2embed");
+
   const ids = idsParaConsulta(id);
   const imdb = ids.imdbId;
   const tmdb = ids.tmdbId;
-
   const ehFilme = categoria === "filme";
   const base = ehFilme ? "/api/proxy/movie" : "/api/proxy/tv";
 
@@ -26,25 +32,24 @@ async function buscarItem(
     if (/^tt\d+/i.test(id)) urls.push(`${base}?imdb_id=${encodeURIComponent(id)}`);
     else if (/^\d+$/.test(id)) urls.push(`${base}?tmdb_id=${encodeURIComponent(id)}`);
   }
+  if (urls.length === 0) throw new Error(`Sem ID valido: ${id}`);
 
+  let lastStatus = 0;
   for (const url of urls) {
-    try {
-      const res = await fetch(url, { cache: "no-store" });
-      if (!res.ok) continue;
-      const data = (await res.json()) as EmbedItem;
-      if (data && (data.tmdb_id || data.imdb_id || data.name || data.title)) {
-        return data;
-      }
-    } catch {
-      /* tenta proxima */
+    const res = await fetch(url, { cache: "no-store" });
+    lastStatus = res.status;
+    if (!res.ok) continue;
+    const data = await res.json();
+    if (data && (data.tmdb_id || data.imdb_id || data.name || data.title)) {
+      return mapearDetalhe(data, categoria);
     }
   }
-  return null;
+  throw new Error(`Titulo nao encontrado (HTTP ${lastStatus})`);
 }
 
 export function ConteudoDetalheLoader({
-  categoria: catRaw,
-  id: idRaw,
+  categoria,
+  id,
 }: {
   categoria: string;
   id: string;
@@ -54,45 +59,36 @@ export function ConteudoDetalheLoader({
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
-    const categoria = categoriaRotaSegura(catRaw);
-    const idLimpo = idConteudoSeguro(idRaw);
-    if (!categoria || !idLimpo) {
-      setErro("Link invalido");
-      setCarregando(false);
-      return;
-    }
-
     let cancel = false;
     setCarregando(true);
     setErro(null);
+    setConteudo(null);
 
-    (async () => {
-      try {
-        const item = await buscarItem(categoria, idLimpo);
-        if (!item) throw new Error("Titulo nao encontrado na API");
-        const detalhe = mapearDetalhe(item, categoria);
-        if (!cancel) setConteudo(detalhe);
-      } catch (e) {
-        if (!cancel) {
-          setErro(e instanceof Error ? e.message : "Falha ao carregar");
-          setConteudo(null);
-        }
-      } finally {
+    carregar(categoria, id)
+      .then((d) => {
+        if (!cancel) setConteudo(d);
+      })
+      .catch((e) => {
+        if (!cancel) setErro(e instanceof Error ? e.message : String(e));
+      })
+      .finally(() => {
         if (!cancel) setCarregando(false);
-      }
-    })();
+      });
 
     return () => {
       cancel = true;
     };
-  }, [catRaw, idRaw]);
+  }, [categoria, id]);
 
   if (carregando) {
     return (
-      <div className="container space-y-6 py-10">
-        <Skeleton className="h-[40vh] w-full rounded-xl" />
-        <Skeleton className="h-8 w-3/4" />
-        <Skeleton className="h-24 w-full" />
+      <div className="container space-y-4 py-16">
+        <div className="h-48 animate-pulse rounded-xl bg-white/5" />
+        <div className="h-8 w-1/2 animate-pulse rounded bg-white/5" />
+        <div className="h-24 animate-pulse rounded bg-white/5" />
+        <p className="text-center text-sm text-white/40">
+          Carregando {categoria}/{id}...
+        </p>
       </div>
     );
   }
@@ -100,14 +96,15 @@ export function ConteudoDetalheLoader({
   if (erro || !conteudo) {
     return (
       <div className="container flex min-h-[50vh] flex-col items-center justify-center gap-3 py-16 text-center">
-        <p className="text-lg font-medium text-novlyx-white">
+        <p className="text-lg font-medium text-white">
           Nao foi possivel abrir este titulo
         </p>
-        <p className="max-w-md text-sm text-novlyx-gray-light">
-          {erro || "Conteudo indisponivel no momento."}
+        <p className="max-w-md text-sm text-white/50">{erro || "Indisponivel"}</p>
+        <p className="text-xs text-white/30">
+          {categoria} / {id}
         </p>
-        <a href="/" className="text-sm text-novlyx-accent underline">
-          Voltar ao inicio
+        <a href="/animes" className="text-sm text-violet-300 underline">
+          Voltar aos animes
         </a>
       </div>
     );
