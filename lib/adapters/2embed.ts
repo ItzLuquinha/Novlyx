@@ -238,12 +238,18 @@ export function mapearDetalhe(
   categoria: CategoriaConteudo
 ): ConteudoDetalhado {
   const resumo = mapearResumo(item, categoria);
-  const castList = item.cast_crew?.cast || item.cast || [];
-  const crewList = item.cast_crew?.crew || item.crew || [];
-  const elenco = castList.slice(0, 12).map((c) => c.name).filter(Boolean);
-  const diretor = crewList.find((c) => c.job === "Director")?.name;
+  const castRaw = item.cast_crew?.cast || item.cast || [];
+  const crewRaw = item.cast_crew?.crew || item.crew || [];
+  const castList = Array.isArray(castRaw) ? castRaw : [];
+  const crewList = Array.isArray(crewRaw) ? crewRaw : [];
+  const elenco = castList
+    .slice(0, 12)
+    .map((c) => (c && typeof c === "object" ? c.name : undefined))
+    .filter((n): n is string => Boolean(n));
+  const diretor = crewList.find((c) => c && c.job === "Director")?.name;
 
-  const seasonsApi = [...(item.seasons ?? [])].sort(
+  const seasonsRaw = Array.isArray(item.seasons) ? item.seasons : [];
+  const seasonsApi = [...seasonsRaw].sort(
     (a, b) => (a.season_number ?? 0) - (b.season_number ?? 0)
   );
 
@@ -290,7 +296,7 @@ export function mapearDetalhe(
     trailerUrl: item.trailer,
     totalTemporadas: temporadas?.filter((t) => t.numero > 0).length,
     temporadas,
-    paisOrigem: item.production_countries?.[0] || "-",
+    paisOrigem: (Array.isArray(item.production_countries) && item.production_countries[0]) || (Array.isArray((item as { origin_country?: string[] }).origin_country) && (item as { origin_country?: string[] }).origin_country?.[0]) || "-",
     idiomaOriginal: item.original_language || resumo.idiomaOriginal || "-",
     classificacaoIndicativa: "-",
     semelhantes: [],

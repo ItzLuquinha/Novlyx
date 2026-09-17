@@ -1,37 +1,25 @@
 "use client";
 
-import { useEffect } from "react";
-import { AlertTriangle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { LogoNovlyx } from "@/components/shared/logo-novlyx";
-
-export default function ErroGlobal({
+export default function Error({
   error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-    console.error(error);
-  }, [error]);
-
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6 px-6 text-center">
-      <LogoNovlyx tamanho="md" />
-      <div className="flex flex-col items-center gap-3">
-        <AlertTriangle className="h-10 w-10 text-novlyx-accent" />
-        <h1 className="text-2xl font-semibold text-novlyx-white">
-          Algo deu errado
-        </h1>
-        <p className="max-w-md text-novlyx-gray-light">
-          Ocorreu um erro inesperado ao carregar esta pagina. Tente novamente
-          em instantes.
-        </p>
-      </div>
-      <Button variant="accent" size="lg" onClick={reset}>
-        Tentar novamente
-      </Button>
-    </main>
+    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-4 text-center">
+      <h2 className="text-xl font-semibold text-white">Algo deu errado</h2>
+      <p className="max-w-md text-sm text-white/60">
+        {error?.message || "Erro inesperado ao carregar a pagina."}
+      </p>
+      <button
+        type="button"
+        onClick={reset}
+        className="rounded-md bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20"
+      >
+        Tentar de novo
+      </button>
+    </div>
   );
 }

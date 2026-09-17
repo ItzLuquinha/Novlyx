@@ -17,8 +17,10 @@ export function formatarTempoPlayer(segundos: number): string {
   return `${min}:${String(seg).padStart(2, "0")}`;
 }
 
-export function formatarNota(nota: number): string {
-  return nota.toFixed(1);
+export function formatarNota(nota: number | null | undefined): string {
+  const n = Number(nota);
+  if (!Number.isFinite(n)) return "0.0";
+  return n.toFixed(1);
 }
 
 export function formatarDataRelativa(dataIso: string): string {

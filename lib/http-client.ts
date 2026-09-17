@@ -34,7 +34,6 @@ function montarUrl(
     return url.toString();
   }
 
-  
   const params = new URLSearchParams();
   const partes = caminho.split("?");
   const pathPart = partes[0] ?? caminho;
@@ -55,7 +54,6 @@ function montarUrl(
     return `/api/proxy${path}${qs ? `?${qs}` : ""}`;
   }
 
-  
   const base = API_BASE_URL.endsWith("/")
     ? API_BASE_URL.slice(0, -1)
     : API_BASE_URL;
@@ -66,25 +64,49 @@ export async function httpClient<T>(
   caminho: string,
   opcoes: OpcoesRequisicao = {}
 ): Promise<T> {
-  const { parametros, ...init } = opcoes;
+  const { parametros, signal, ...init } = opcoes;
   const url = montarUrl(caminho, parametros);
 
-  const resposta = await fetch(url, {
-    ...init,
-    headers: {
-      Accept: "application/json",
-      ...init.headers,
-    },
-    cache: "no-store",
-  });
+  const controller = new AbortController();
+  const timeoutMs = 12_000;
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
 
-  if (!resposta.ok) {
-    throw new ErroApi(
-      `Falha na requisicao: ${resposta.status} ${resposta.statusText}`,
-      resposta.status,
-      url
-    );
+  if (signal) {
+    if (signal.aborted) controller.abort();
+    else signal.addEventListener("abort", () => controller.abort(), { once: true });
   }
 
-  return resposta.json() as Promise<T>;
+  try {
+    const resposta = await fetch(url, {
+      ...init,
+      signal: controller.signal,
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "NOVLYX/1.0",
+        ...init.headers,
+      },
+      cache: "no-store",
+    });
+
+    if (!resposta.ok) {
+      throw new ErroApi(
+        `Falha na requisicao: ${resposta.status} ${resposta.statusText}`,
+        resposta.status,
+        url
+      );
+    }
+
+    const texto = await resposta.text();
+    if (!texto) {
+      throw new ErroApi("Resposta vazia", resposta.status, url);
+    }
+
+    try {
+      return JSON.parse(texto) as T;
+    } catch {
+      throw new ErroApi("Resposta nao e JSON", resposta.status, url);
+    }
+  } finally {
+    clearTimeout(timer);
+  }
 }
