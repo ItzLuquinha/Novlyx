@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import {
   FONTES_PLAYER,
+  logPlayerDebug,
   urlPlayerFilme,
   urlPlayerSerie,
 } from "@/lib/player";
@@ -16,50 +17,55 @@ import { registrarHistorico } from "@/services/historico.service";
 import { cn } from "@/lib/utils";
 import { urlHttpSegura } from "@/lib/url-segura";
 import { formatarTempoPlayer } from "@/utils/formatadores";
+import {
+  chaveProgresso,
+  ehSerieLike,
+  hrefConteudo,
+} from "@/lib/identidade";
 
 interface PlayerVideoProps {
   conteudo: ConteudoDetalhado;
-  temporadaIdInicial?: string;
-  episodioIdInicial?: string;
-}
-
-function numeroDeParam(valor?: string): number | null {
-  if (!valor) return null;
-  const n = Number(String(valor).replace(/\D/g, ""));
-  return Number.isFinite(n) && n > 0 ? n : null;
+  season: number;
+  episode: number;
+  onSeasonChange: (season: number) => void;
+  onEpisodeChange: (episode: number) => void;
 }
 
 export function PlayerVideo({
   conteudo,
-  temporadaIdInicial,
-  episodioIdInicial,
+  season,
+  episode,
+  onSeasonChange,
+  onEpisodeChange,
 }: PlayerVideoProps) {
-  const ehSerie =
-    conteudo.categoria === "serie" ||
-    conteudo.categoria === "anime" ||
-    conteudo.categoria === "dorama";
+  const ehSerie = ehSerieLike(conteudo.categoria);
+  const idInterno = conteudo.idInterno || conteudo.id;
+  const idsExternos = useMemo(
+    () => ({ tmdbId: conteudo.tmdbId, imdbId: conteudo.imdbId }),
+    [conteudo.tmdbId, conteudo.imdbId]
+  );
 
-  const { progresso, salvar } = useProgressoConteudo(conteudo.id);
-
-  const seasonInicial =
-    numeroDeParam(temporadaIdInicial) ??
-    numeroDeParam(
-      conteudo.temporadas?.[0]
-        ? String(conteudo.temporadas[0].numero)
-        : undefined
-    ) ??
-    1;
-  const episodeInicial = numeroDeParam(episodioIdInicial) ?? 1;
+  const { progresso, salvar } = useProgressoConteudo(
+    idInterno,
+    ehSerie ? season : undefined,
+    ehSerie ? episode : undefined
+  );
 
   const duracaoEstimada = useMemo(() => {
-    if (ehSerie) return 45 * 60;
+    if (ehSerie) {
+      const ep = conteudo.temporadas
+        ?.find((t) => t.numero === season)
+        ?.episodios.find((e) => e.numero === episode);
+      if (ep?.duracaoMinutos && ep.duracaoMinutos > 5) {
+        return ep.duracaoMinutos * 60;
+      }
+      return 45 * 60;
+    }
     const min = conteudo.duracaoMinutos;
     if (min && min > 20 && min < 400) return min * 60;
     return 120 * 60;
-  }, [conteudo.duracaoMinutos, ehSerie]);
+  }, [conteudo.duracaoMinutos, conteudo.temporadas, ehSerie, season, episode]);
 
-  const [season, setSeason] = useState(seasonInicial);
-  const [episode, setEpisode] = useState(episodeInicial);
   const [fonteId, setFonteId] = useState(FONTES_PLAYER[0]?.id ?? "embedplay");
   const [aceitouAviso, setAceitouAviso] = useState(false);
   const [naoMostrarAviso, setNaoMostrarAviso] = useState(false);
@@ -71,25 +77,45 @@ export function PlayerVideo({
   const contandoRef = useRef(false);
   contandoRef.current = contando;
 
+  function resetarProgressoLocal() {
+    tempoRef.current = 0;
+    setTempoAtual(0);
+    setContando(false);
+    contandoRef.current = false;
+    setRestaurado(false);
+  }
+
+  // Reset total ao trocar de obra
+  useEffect(() => {
+    resetarProgressoLocal();
+    setFonteId(FONTES_PLAYER[0]?.id ?? "embedplay");
+  }, [idInterno]);
+
   useEffect(() => {
     try {
       if (localStorage.getItem("novlyx-aviso-ads-ok") === "1") {
         setAceitouAviso(true);
       }
     } catch {
-      
+      /* ignore */
     }
   }, []);
 
+  // Restaura progresso do episódio atual
+  useEffect(() => {
+    setRestaurado(false);
+  }, [idInterno, season, episode]);
+
   useEffect(() => {
     if (!progresso || restaurado) return;
-    const urlTemT = numeroDeParam(temporadaIdInicial) != null;
-    const urlTemE = numeroDeParam(episodioIdInicial) != null;
-    if (!urlTemT && progresso.temporadaNumero && progresso.temporadaNumero > 0) {
-      setSeason(progresso.temporadaNumero);
-    }
-    if (!urlTemE && progresso.episodioNumero && progresso.episodioNumero > 0) {
-      setEpisode(progresso.episodioNumero);
+    if (
+      ehSerie &&
+      progresso.temporadaNumero != null &&
+      progresso.episodioNumero != null &&
+      (progresso.temporadaNumero !== season ||
+        progresso.episodioNumero !== episode)
+    ) {
+      return;
     }
     if (progresso.tempoAtualSegundos > 0) {
       const t = Math.min(
@@ -103,8 +129,9 @@ export function PlayerVideo({
   }, [
     progresso,
     restaurado,
-    temporadaIdInicial,
-    episodioIdInicial,
+    season,
+    episode,
+    ehSerie,
     duracaoEstimada,
   ]);
 
@@ -117,9 +144,19 @@ export function PlayerVideo({
     ) => {
       const t = Math.max(0, Math.floor(tempo));
       if (t < 5) return;
+      const key = chaveProgresso(
+        conteudo.categoria,
+        idInterno,
+        ehSerie ? s : undefined,
+        ehSerie ? e : undefined
+      );
       salvar({
-        conteudoId: conteudo.id,
+        progressKey: key,
+        conteudoId: idInterno,
+        idInterno,
         categoria: conteudo.categoria,
+        tmdbId: conteudo.tmdbId,
+        imdbId: conteudo.imdbId,
         titulo: conteudo.titulo,
         posterUrl: conteudo.posterUrl,
         temporadaNumero: ehSerie ? s : undefined,
@@ -132,8 +169,12 @@ export function PlayerVideo({
       if (opts?.historico !== false) {
         registrarHistorico(
           {
-            conteudoId: conteudo.id,
+            historicoKey: key,
+            conteudoId: idInterno,
+            idInterno,
             categoria: conteudo.categoria,
+            tmdbId: conteudo.tmdbId,
+            imdbId: conteudo.imdbId,
             titulo: conteudo.titulo,
             posterUrl: conteudo.posterUrl,
             temporadaNumero: ehSerie ? s : undefined,
@@ -144,10 +185,9 @@ export function PlayerVideo({
         );
       }
     },
-    [conteudo, ehSerie, salvar, duracaoEstimada]
+    [conteudo, ehSerie, salvar, duracaoEstimada, idInterno]
   );
 
-  
   useEffect(() => {
     if (!aceitouAviso) return;
     const id = setInterval(() => {
@@ -188,21 +228,57 @@ export function PlayerVideo({
 
   const embedUrl = useMemo(() => {
     const raw = ehSerie
-      ? urlPlayerSerie(conteudo.id, season, episode, fonteId)
-      : urlPlayerFilme(conteudo.id, fonteId);
+      ? urlPlayerSerie(idsExternos, season, episode, fonteId)
+      : urlPlayerFilme(idsExternos, fonteId);
     return urlHttpSegura(raw) ?? "";
-  }, [conteudo.id, ehSerie, season, episode, fonteId]);
+  }, [idsExternos, ehSerie, season, episode, fonteId]);
+
+  useEffect(() => {
+    logPlayerDebug({
+      titulo: conteudo.titulo,
+      categoria: conteudo.categoria,
+      idInterno,
+      tmdbId: conteudo.tmdbId,
+      imdbId: conteudo.imdbId,
+      season: ehSerie ? season : undefined,
+      episode: ehSerie ? episode : undefined,
+      provider: fonteId,
+      embedUrl: embedUrl || null,
+    });
+  }, [
+    conteudo.titulo,
+    conteudo.categoria,
+    idInterno,
+    conteudo.tmdbId,
+    conteudo.imdbId,
+    ehSerie,
+    season,
+    episode,
+    fonteId,
+    embedUrl,
+  ]);
+
+  // Fallback de fonte se embed vazio
+  useEffect(() => {
+    if (embedUrl) return;
+    const atual = FONTES_PLAYER.findIndex((f) => f.id === fonteId);
+    const proxima = FONTES_PLAYER[atual + 1];
+    if (proxima) setFonteId(proxima.id);
+  }, [embedUrl, fonteId]);
 
   const fonteAtual = FONTES_PLAYER.find((f) => f.id === fonteId);
-  const totalTemp = Math.max(
-    1,
-    conteudo.temporadas?.length || conteudo.totalTemporadas || 1
-  );
-  const epsNaTemp = Math.max(
-    1,
-    conteudo.temporadas?.find((t) => t.numero === season)?.totalEpisodios ||
-      24
-  );
+  const temporadas = conteudo.temporadas ?? [];
+  const temporadaAtual =
+    temporadas.find((t) => t.numero === season) ?? temporadas[0];
+  const episodios =
+    temporadaAtual?.episodios?.length
+      ? temporadaAtual.episodios
+      : temporadaAtual?.totalEpisodios
+        ? Array.from({ length: temporadaAtual.totalEpisodios }, (_, i) => ({
+            id: String(i + 1),
+            numero: i + 1,
+          }))
+        : [];
 
   function marcarPonto(segundos: number) {
     const t = Math.max(0, Math.min(duracaoEstimada, Math.floor(segundos)));
@@ -216,17 +292,27 @@ export function PlayerVideo({
       try {
         localStorage.setItem("novlyx-aviso-ads-ok", "1");
       } catch {
-        
+        /* ignore */
       }
     }
     setAceitouAviso(true);
+  }
+
+  function trocarTemporada(n: number) {
+    resetarProgressoLocal();
+    onSeasonChange(n);
+  }
+
+  function trocarEpisodio(n: number) {
+    resetarProgressoLocal();
+    onEpisodeChange(n);
   }
 
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="flex items-center gap-2 px-3 py-2">
         <Link
-          href={`/conteudo/${conteudo.id}`}
+          href={hrefConteudo(conteudo)}
           className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/5"
           aria-label="Voltar"
         >
@@ -236,6 +322,8 @@ export function PlayerVideo({
           <h1 className="truncate text-sm font-medium">{conteudo.titulo}</h1>
           <p className="truncate text-[11px] text-white/40">
             {ehSerie ? `T${season} E${episode}` : conteudo.ano}
+            {conteudo.tmdbId ? ` · TMDB ${conteudo.tmdbId}` : ""}
+            {conteudo.imdbId ? ` · ${conteudo.imdbId}` : ""}
           </p>
         </div>
         {aceitouAviso && embedUrl ? (
@@ -279,7 +367,7 @@ export function PlayerVideo({
             </div>
           ) : embedUrl ? (
             <iframe
-              key={embedUrl}
+              key={`${idInterno}:${fonteId}:${season}:${episode}:${embedUrl}`}
               src={embedUrl}
               title={conteudo.titulo}
               className="absolute inset-0 h-full w-full border-0"
@@ -289,7 +377,7 @@ export function PlayerVideo({
             />
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-white/50">
-              Fonte inválida
+              Sem ID externo válido para esta fonte (precisa TMDB ou IMDb)
             </div>
           )}
         </div>
@@ -398,21 +486,16 @@ export function PlayerVideo({
                 <select
                   className="ml-1 rounded border border-white/10 bg-black px-1.5 py-1 text-xs"
                   value={season}
-                  onChange={(e) => {
-                    const n = Number(e.target.value);
-                    setSeason(n);
-                    setEpisode(1);
-                    tempoRef.current = 0;
-                    setTempoAtual(0);
-                    setContando(false);
-                  }}
+                  onChange={(e) => trocarTemporada(Number(e.target.value))}
                 >
-                  {Array.from({ length: totalTemp }, (_, i) => i + 1).map(
-                    (n) => (
-                      <option key={n} value={n}>
-                        {n}
+                  {temporadas.length > 0 ? (
+                    temporadas.map((t) => (
+                      <option key={t.id} value={t.numero}>
+                        {t.numero === 0 ? "Esp" : t.numero}
                       </option>
-                    )
+                    ))
+                  ) : (
+                    <option value={season}>{season}</option>
                   )}
                 </select>
               </label>
@@ -421,25 +504,35 @@ export function PlayerVideo({
                 <select
                   className="ml-1 rounded border border-white/10 bg-black px-1.5 py-1 text-xs"
                   value={episode}
-                  onChange={(e) => setEpisode(Number(e.target.value))}
+                  onChange={(e) => trocarEpisodio(Number(e.target.value))}
+                  disabled={episodios.length === 0}
                 >
-                  {Array.from(
-                    { length: Math.min(epsNaTemp, 40) },
-                    (_, i) => i + 1
-                  ).map((n) => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
-                  ))}
+                  {episodios.length > 0 ? (
+                    episodios.map((ep) => (
+                      <option key={ep.numero} value={ep.numero}>
+                        {ep.numero}
+                      </option>
+                    ))
+                  ) : (
+                    <option value={episode}>{episode}</option>
+                  )}
                 </select>
               </label>
+              {episodios.length === 0 && (
+                <span className="text-[10px] text-white/30">
+                  Lista de episódios indisponível nesta temporada
+                </span>
+              )}
             </div>
           )}
 
           {fonteAtual && (
             <p className="mt-3 text-[10px] text-white/25">
-              {fonteAtual.nome} · arraste a barra ou use 25/50/75% para marcar
-              onde parou
+              {fonteAtual.nome}
+              {fonteAtual.preferenciaSerie === "tmdb"
+                ? " · ID preferido: TMDB"
+                : " · ID preferido: IMDb"}
+              {" · arraste a barra ou use 25/50/75% para marcar onde parou"}
             </p>
           )}
         </div>

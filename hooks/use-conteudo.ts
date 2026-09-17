@@ -1,10 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
-import { getConteudoPorId } from "@/services";
+import { CategoriaConteudo } from "@/types";
+import { getConteudoPorCategoria, getConteudoPorId } from "@/services";
 
-export function useConteudo(id: string) {
+export function useConteudo(id: string, categoria?: CategoriaConteudo) {
   return useQuery({
-    queryKey: ["conteudo", id],
-    queryFn: () => getConteudoPorId(id),
+    queryKey: ["conteudo", categoria || "legado", id],
+    queryFn: () =>
+      categoria
+        ? getConteudoPorCategoria(categoria, id)
+        : getConteudoPorId(id),
     enabled: Boolean(id),
   });
 }

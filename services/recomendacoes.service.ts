@@ -2,13 +2,10 @@ import { CategoriaConteudo, ConteudoResumo } from "@/types";
 import { httpClient } from "@/lib/http-client";
 import { API_HABILITADA, API_ROTAS } from "@/lib/api-config";
 import {
-  EmbedListResponse, EMPTY_EMBED_LIST,
+  EmbedListResponse,
   mapearListaPaginada,
 } from "@/lib/adapters/2embed";
-
-function ehSerieLike(cat: CategoriaConteudo): boolean {
-  return cat === "serie" || cat === "anime" || cat === "dorama";
-}
+import { chaveEstavel, ehSerieLike, idsParaConsulta } from "@/lib/identidade";
 
 export async function getSimilaresPorId(
   id: string,
@@ -18,10 +15,13 @@ export async function getSimilaresPorId(
   if (!API_HABILITADA || !id) return [];
 
   try {
+    const ids = idsParaConsulta(id);
+    if (!ids.imdbId && !ids.tmdbId) return [];
+
     const serie = ehSerieLike(categoria);
-    const parametros = id.startsWith("tt")
-      ? { imdb_id: id }
-      : { tmdb_id: id };
+    const parametros = ids.imdbId
+      ? { imdb_id: ids.imdbId }
+      : { tmdb_id: ids.tmdbId! };
 
     const data = await httpClient<EmbedListResponse>(
       serie ? API_ROTAS.similaresSeries : API_ROTAS.similaresFilmes,
@@ -30,7 +30,7 @@ export async function getSimilaresPorId(
 
     const catMap: CategoriaConteudo = serie ? "serie" : "filme";
     const itens = mapearListaPaginada(data, catMap).itens.filter(
-      (i) => i.id !== id
+      (i) => chaveEstavel(i) !== chaveEstavel({ categoria, tmdbId: ids.tmdbId, imdbId: ids.imdbId, id })
     );
     return itens.slice(0, limite);
   } catch (e) {
@@ -47,12 +47,12 @@ export async function getSimilaresPorTitulo(
   if (!API_HABILITADA || !titulo.trim()) return [];
   try {
     const serie = ehSerieLike(categoria);
-    
-    const q = titulo
-      .replace(/\([^)]*\)/g, "")
-      .split(/[:\-]/)[0]
-      ?.trim()
-      .slice(0, 40) || titulo;
+    const q =
+      titulo
+        .replace(/\([^)]*\)/g, "")
+        .split(/[:\-]/)[0]
+        ?.trim()
+        .slice(0, 40) || titulo;
 
     const data = await httpClient<EmbedListResponse>(
       serie ? API_ROTAS.buscaSeries : API_ROTAS.buscaFilmes,
@@ -60,9 +60,7 @@ export async function getSimilaresPorTitulo(
     );
     const catMap: CategoriaConteudo = serie ? "serie" : "filme";
     return mapearListaPaginada(data, catMap)
-      .itens.filter(
-        (i) => i.titulo.toLowerCase() !== titulo.toLowerCase()
-      )
+      .itens.filter((i) => i.titulo.toLowerCase() !== titulo.toLowerCase())
       .slice(0, limite);
   } catch (e) {
     console.error("[getSimilaresPorTitulo]", e);
@@ -84,20 +82,18 @@ export async function getRecomendacoesPorHistorico(
     limite
   );
   if (porId.length >= 6) return porId;
-
   const porTitulo = await getSimilaresPorTitulo(
     base.titulo,
     base.categoria,
     limite
   );
-
-  const visto = new Set(porId.map((i) => i.id));
+  const visto = new Set(porId.map((i) => chaveEstavel(i)));
   const mix = [...porId];
   for (const item of porTitulo) {
-    if (!visto.has(item.id) && item.id !== base.conteudoId) {
-      visto.add(item.id);
-      mix.push(item);
-    }
+    const k = chaveEstavel(item);
+    if (visto.has(k)) continue;
+    visto.add(k);
+    mix.push(item);
   }
   return mix.slice(0, limite);
 }

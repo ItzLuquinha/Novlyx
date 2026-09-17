@@ -5,8 +5,15 @@ import {
   Genero,
   QualidadeVideo,
   ResultadoPaginado,
+  Temporada,
 } from "@/types";
 import { tituloEmPortugues } from "@/lib/titulos-pt";
+import {
+  chaveEstavel,
+  montarIdInterno,
+  normalizarImdb,
+  normalizarTmdb,
+} from "@/lib/identidade";
 
 export interface EmbedItem {
   title?: string;
@@ -90,23 +97,19 @@ function anoDe(item: EmbedItem): number {
   return Number(raw) || 0;
 }
 
-function idDe(item: EmbedItem): string {
-  const imdb = item.imdb_id?.trim();
-  if (imdb && imdb.startsWith("tt")) return imdb;
-  if (item.tmdb_id != null && Number(item.tmdb_id) > 0) {
-    return String(item.tmdb_id);
-  }
-  
-  const nome = (item.title || item.name || "").trim();
-  if (nome) {
-    const ano = item.year || item.release_date?.slice(0, 4) || "";
-    return `nome-${nome.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40)}-${ano}`;
-  }
-  return "";
+export function idsDeItem(item: EmbedItem): {
+  tmdbId?: string;
+  imdbId?: string;
+} {
+  return {
+    tmdbId: normalizarTmdb(item.tmdb_id),
+    imdbId: normalizarImdb(item.imdb_id),
+  };
 }
 
 export function temIdValido(item: EmbedItem): boolean {
-  return Boolean(idDe(item));
+  const { tmdbId, imdbId } = idsDeItem(item);
+  return Boolean(tmdbId || imdbId);
 }
 
 function detectarEmCinema(item: EmbedItem): boolean {
@@ -124,10 +127,9 @@ function detectarEmCinema(item: EmbedItem): boolean {
   if (dataStr) {
     const data = new Date(dataStr);
     const agora = new Date();
-    
     const diffDias =
       (agora.getTime() - data.getTime()) / (1000 * 60 * 60 * 24);
-    if (diffDias < 0) return true; 
+    if (diffDias < 0) return true;
     if (diffDias <= 45 && status.includes("released")) return true;
   }
   return false;
@@ -170,7 +172,6 @@ function estimarQualidade(item: EmbedItem, emCinema: boolean): QualidadeVideo {
     const diffDias =
       (Date.now() - data.getTime()) / (1000 * 60 * 60 * 24);
     if (diffDias < 0) return "Cinema";
-    
     if (diffDias <= 90) return "HD";
   }
 
@@ -179,6 +180,28 @@ function estimarQualidade(item: EmbedItem, emCinema: boolean): QualidadeVideo {
   if (ano >= anoAtual - 1) return "HD";
   if (ano > 0 && ano < 1990) return "HD";
   return "FULL HD";
+}
+
+function montarEpisodiosReais(
+  numTemp: number,
+  qtd: number,
+  poster: string
+): Temporada["episodios"] {
+  const n = Math.max(0, Math.floor(qtd));
+  if (n <= 0) return [];
+  return Array.from({ length: n }, (_, j) => {
+    const ep = j + 1;
+    return {
+      id: String(ep),
+      numero: ep,
+      temporadaId: String(numTemp),
+      titulo: `Episódio ${ep}`,
+      descricao: "",
+      duracaoMinutos: 0,
+      posterUrl: poster,
+      dataLancamento: "",
+    };
+  });
 }
 
 export function mapearResumo(
@@ -194,9 +217,15 @@ export function mapearResumo(
     "/placeholders/banner-default.svg";
   const idioma = item.original_language || "";
   const emCinema = detectarEmCinema(item);
+  const { tmdbId, imdbId } = idsDeItem(item);
+  const fallbackNome = `${titulo}-${anoDe(item) || ""}`;
+  const idInterno = montarIdInterno(categoria, tmdbId, imdbId, fallbackNome);
 
   return {
-    id: idDe(item),
+    id: idInterno,
+    idInterno,
+    tmdbId,
+    imdbId,
     titulo,
     tituloOriginal: original || undefined,
     categoria,
@@ -219,79 +248,47 @@ export function mapearDetalhe(
   categoria: CategoriaConteudo
 ): ConteudoDetalhado {
   const resumo = mapearResumo(item, categoria);
-  const castList =
-    item.cast_crew?.cast ||
-    item.cast ||
-    [];
+  const castList = item.cast_crew?.cast || item.cast || [];
   const crewList = item.cast_crew?.crew || item.crew || [];
   const elenco = castList.slice(0, 12).map((c) => c.name).filter(Boolean);
   const diretor = crewList.find((c) => c.job === "Director")?.name;
 
-  const seasonsApi = (item.seasons ?? []).filter(
-    (s) => (s.season_number ?? 0) >= 1
+  const seasonsApi = [...(item.seasons ?? [])].sort(
+    (a, b) => (a.season_number ?? 0) - (b.season_number ?? 0)
   );
-  const totalTemp =
-    item.number_of_seasons ||
-    seasonsApi.length ||
-    0;
-  const totalEps = item.number_of_episodes || 0;
 
-  function montarEpisodios(
-    numTemp: number,
-    qtd: number,
-    poster: string
-  ) {
-    const n = Math.max(1, Math.min(qtd || 12, 60));
-    return Array.from({ length: n }, (_, j) => {
-      const ep = j + 1;
+  let temporadas: Temporada[] | undefined;
+
+  if (seasonsApi.length > 0) {
+    temporadas = seasonsApi.map((s) => {
+      const num = s.season_number ?? 0;
+      const epsNaTemp = Math.max(0, Math.floor(s.episode_count || 0));
+      const poster = s.poster || resumo.posterUrl;
       return {
-        id: String(ep),
-        numero: ep,
-        temporadaId: String(numTemp),
-        titulo: `Episódio ${ep}`,
-        descricao: "",
-        duracaoMinutos: 45,
+        id: String(num),
+        numero: num,
+        titulo: s.name || (num === 0 ? "Especiais" : `Temporada ${num}`),
+        totalEpisodios: epsNaTemp,
         posterUrl: poster,
-        dataLancamento: "",
+        episodios: montarEpisodiosReais(num, epsNaTemp, poster),
       };
     });
+  } else if (item.number_of_seasons && item.number_of_seasons > 0) {
+    temporadas = Array.from(
+      { length: item.number_of_seasons },
+      (_, i) => {
+        const num = i + 1;
+        return {
+          id: String(num),
+          numero: num,
+          titulo: `Temporada ${num}`,
+          totalEpisodios: 0,
+          posterUrl: resumo.posterUrl,
+          episodios: [],
+        };
+      }
+    );
   }
-
-  let temporadas =
-    seasonsApi.length > 0
-      ? seasonsApi
-          .slice()
-          .sort((a, b) => (a.season_number ?? 0) - (b.season_number ?? 0))
-          .map((s) => {
-            const num = s.season_number ?? 1;
-            const epsNaTemp = s.episode_count || 12;
-            const poster = s.poster || resumo.posterUrl;
-            return {
-              id: String(num),
-              numero: num,
-              titulo: s.name || `Temporada ${num}`,
-              totalEpisodios: epsNaTemp,
-              posterUrl: poster,
-              episodios: montarEpisodios(num, epsNaTemp, poster),
-            };
-          })
-      : totalTemp > 0
-        ? Array.from({ length: Math.min(totalTemp, 40) }, (_, i) => {
-            const num = i + 1;
-            const epsNaTemp =
-              totalEps > 0
-                ? Math.max(1, Math.ceil(totalEps / totalTemp) || 12)
-                : 12;
-            return {
-              id: String(num),
-              numero: num,
-              titulo: `Temporada ${num}`,
-              totalEpisodios: epsNaTemp,
-              posterUrl: resumo.posterUrl,
-              episodios: montarEpisodios(num, epsNaTemp, resumo.posterUrl),
-            };
-          })
-        : undefined;
 
   return {
     ...resumo,
@@ -300,7 +297,7 @@ export function mapearDetalhe(
     diretor,
     elenco,
     trailerUrl: item.trailer,
-    totalTemporadas: (temporadas?.length || totalTemp) || undefined,
+    totalTemporadas: temporadas?.filter((t) => t.numero > 0).length,
     temporadas,
     paisOrigem: item.production_countries?.[0] || "-",
     idiomaOriginal: item.original_language || resumo.idiomaOriginal || "-",
@@ -314,25 +311,29 @@ export function mapearListaPaginada(
   categoria: CategoriaConteudo
 ): ResultadoPaginado<ConteudoResumo> {
   const brutos = data.results ?? [];
-  let validos = brutos.filter((item) => temIdValido(item));
-  
-  if (validos.length === 0 && brutos.length > 0) {
-    validos = brutos;
-  }
-  let itens = validos.map((item) => mapearResumo(item, categoria)).filter((i) => Boolean(i.id));
+  const validos = brutos.filter((item) => temIdValido(item));
+  const visto = new Set<string>();
+  const itens: ConteudoResumo[] = [];
 
-  
-  itens = [...itens].sort((a, b) => {
+  for (const item of validos) {
+    const resumo = mapearResumo(item, categoria);
+    const chave = chaveEstavel(resumo);
+    if (visto.has(chave)) continue;
+    visto.add(chave);
+    itens.push(resumo);
+  }
+
+  const ordenados = [...itens].sort((a, b) => {
     const aPt = a.idiomaOriginal?.startsWith("pt") ? 1 : 0;
     const bPt = b.idiomaOriginal?.startsWith("pt") ? 1 : 0;
     return bPt - aPt;
   });
 
   return {
-    itens,
+    itens: ordenados,
     paginaAtual: data.page ?? 1,
     totalPaginas: data.total_pages ?? 1,
-    totalItens: data.total_results ?? itens.length,
+    totalItens: data.total_results ?? ordenados.length,
     temProximaPagina: (data.page ?? 1) < (data.total_pages ?? 1),
   };
 }

@@ -16,7 +16,7 @@ const CAMINHOS_PERMITIDOS = new Set([
 ]);
 
 const hits = new Map<string, { count: number; resetAt: number }>();
-const LIMITE = 120; 
+const LIMITE = 120;
 const JANELA_MS = 60_000;
 
 function rateLimitOk(ip: string): boolean {
@@ -36,7 +36,6 @@ function caminhoSeguro(segmentos: string[]): string | null {
   for (const seg of segmentos) {
     if (!seg || seg === "." || seg === "..") return null;
     if (seg.includes("\\") || seg.includes("%") || seg.includes(":")) return null;
-    
     if (!/^[a-zA-Z0-9_-]+$/.test(seg)) return null;
   }
   const base = segmentos[0]!.toLowerCase();
@@ -47,13 +46,22 @@ function caminhoSeguro(segmentos: string[]): string | null {
 function querySegura(searchParams: URLSearchParams): string {
   const out = new URLSearchParams();
   for (const [k, v] of searchParams.entries()) {
-    
     if (!/^[a-zA-Z0-9_]+$/.test(k)) continue;
     if (v.length > 200) continue;
     if (/[\u0000-\u001f]/.test(v)) continue;
     out.set(k, v);
   }
   return out.toString();
+}
+
+function cachePara(caminho: string): string {
+  if (caminho === "movie" || caminho === "tv") {
+    return "public, s-maxage=30, stale-while-revalidate=120";
+  }
+  if (caminho.startsWith("search") || caminho.startsWith("trending")) {
+    return "public, s-maxage=60, stale-while-revalidate=300";
+  }
+  return "no-store";
 }
 
 export async function GET(
@@ -85,20 +93,14 @@ export async function GET(
     const res = await fetch(url, {
       headers: { Accept: "application/json", "User-Agent": "NOVLYX/1.0" },
       cache: "no-store",
-      
       redirect: "manual",
     });
 
-    
     if (res.status >= 300 && res.status < 400) {
-      return NextResponse.json(
-        { erro: "Redirect bloqueado" },
-        { status: 502 }
-      );
+      return NextResponse.json({ erro: "Redirect bloqueado" }, { status: 502 });
     }
 
     const body = await res.text();
-    
     if (body.length > 2_000_000) {
       return NextResponse.json({ erro: "Resposta grande demais" }, { status: 502 });
     }
@@ -107,8 +109,9 @@ export async function GET(
       status: res.status,
       headers: {
         "Content-Type": "application/json; charset=utf-8",
-        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+        "Cache-Control": cachePara(caminho),
         "X-Content-Type-Options": "nosniff",
+        Vary: "Accept",
       },
     });
   } catch (erro) {

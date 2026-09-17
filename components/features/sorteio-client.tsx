@@ -1,3 +1,4 @@
+import { hrefConteudo, hrefPlayer } from "@/lib/identidade";
 "use client";
 
 import { useState } from "react";
@@ -328,13 +329,13 @@ export function SorteioClient() {
                     </p>
                     <div className="mt-3 flex flex-col gap-1.5">
                       <Link
-                        href={`/player/${item.id}`}
+                        href={hrefPlayer(item)}
                         className="inline-flex h-9 items-center justify-center rounded-md bg-novlyx-accent text-xs font-semibold text-white hover:bg-novlyx-accent-soft"
                       >
                         Assistir
                       </Link>
                       <Link
-                        href={`/conteudo/${item.id}`}
+                        href={hrefConteudo(item)}
                         className="inline-flex h-9 items-center justify-center rounded-md border border-white/10 text-xs text-white/70 hover:bg-white/5"
                       >
                         Detalhes

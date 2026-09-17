@@ -10,6 +10,20 @@ export const metadata: Metadata = {
 
 const ENTRADAS = [
   {
+    data: "Setembro 2026",
+    titulo: "Identidade de conteúdo e player sem colisões",
+    itens: [
+      "Cada obra preserva idInterno, tmdbId e imdbId separados",
+      "Rotas /conteudo/{categoria}/{id} e /player/{categoria}/{id}",
+      "getConteudoPorCategoria evita misturar filme e série com o mesmo TMDB",
+      "Fontes BR recebem o ID que suportam (EmbedPlay prioriza TMDB, WarezCDN prioriza IMDb)",
+      "Progresso e histórico por episódio (chave categoria + id + SxEx)",
+      "Watch party usa a temporada/episódio atuais do player",
+      "Seletor de temporadas usa números reais da API (inclui especiais)",
+      "Sem inventar 24 episódios quando a lista é desconhecida",
+    ],
+  },
+  {
     data: "Agosto 2026",
     titulo: "Fontes BR, AdGuard, sorteio e app na tela inicial",
     itens: [

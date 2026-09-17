@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { ImagemPlaceholder as Image } from "@/components/shared/imagem-placeholder";
 import Link from "next/link";
+import { hrefConteudo, hrefPlayer } from "@/lib/identidade";
 import { motion, AnimatePresence } from "framer-motion";
 import { ConteudoResumo } from "@/types";
 import { formatarNota } from "@/utils/formatadores";
@@ -78,13 +79,13 @@ export function BannerDestaque({ itens }: BannerDestaqueProps) {
 
           <div className="mt-6 flex flex-wrap gap-2.5">
             <Link
-              href={`/player/${destaque.id}`}
+              href={hrefPlayer(destaque)}
               className="inline-flex h-11 items-center justify-center rounded-md bg-novlyx-accent px-6 text-sm font-semibold text-white transition-colors hover:bg-novlyx-accent-soft"
             >
               Assistir
             </Link>
             <Link
-              href={`/conteudo/${destaque.id}`}
+              href={hrefConteudo(destaque)}
               className="inline-flex h-11 items-center justify-center rounded-md border border-white/12 bg-novlyx-graphite-light px-6 text-sm font-medium text-white transition-colors hover:bg-white/10"
             >
               Detalhes

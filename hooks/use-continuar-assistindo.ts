@@ -40,24 +40,38 @@ export function useContinuarAssistindo() {
   return { itens, carregado, limpar, recarregar };
 }
 
-export function useProgressoConteudo(conteudoId: string) {
+export function useProgressoConteudo(
+  conteudoId: string,
+  season?: number,
+  episode?: number
+) {
   const [progresso, setProgresso] = useState<ProgressoContinuarAssistindo | null>(
     null
   );
 
   useEffect(() => {
-    setProgresso(getProgressoConteudo(conteudoId));
+    setProgresso(getProgressoConteudo(conteudoId, season, episode));
     function onUpdate() {
-      setProgresso(getProgressoConteudo(conteudoId));
+      setProgresso(getProgressoConteudo(conteudoId, season, episode));
     }
     window.addEventListener(EVENTO_PROGRESSO, onUpdate);
     return () => window.removeEventListener(EVENTO_PROGRESSO, onUpdate);
-  }, [conteudoId]);
+  }, [conteudoId, season, episode]);
 
   const salvar = useCallback(
-    (dados: Omit<ProgressoContinuarAssistindo, "atualizadoEm">) => {
+    (
+      dados: Omit<ProgressoContinuarAssistindo, "atualizadoEm" | "progressKey"> & {
+        progressKey?: string;
+      }
+    ) => {
       salvarProgresso(dados);
-      setProgresso(getProgressoConteudo(conteudoId));
+      setProgresso(
+        getProgressoConteudo(
+          conteudoId,
+          dados.temporadaNumero,
+          dados.episodioNumero
+        )
+      );
     },
     [conteudoId]
   );

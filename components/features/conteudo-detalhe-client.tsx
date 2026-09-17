@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Play, Plus, Check, Star, Clock, Calendar } from "lucide-react";
 import { ConteudoDetalhado } from "@/types";
+import { ehSerieLike, hrefPlayer } from "@/lib/identidade";
 import { Button } from "@/components/ui/button";
 import { ImagemPlaceholder as Image } from "@/components/shared/imagem-placeholder";
 import { ListaGeneros } from "@/components/shared/lista-generos";
@@ -21,14 +22,24 @@ export function ConteudoDetalheClient({
 }: {
   conteudo: ConteudoDetalhado;
 }) {
-  const { presente, atualizar } = useEstaNaMinhaLista(conteudo.id);
-  const { progresso } = useProgressoConteudo(conteudo.id);
+  const idInterno = conteudo.idInterno || conteudo.id;
+  const { presente, atualizar } = useEstaNaMinhaLista({
+    categoria: conteudo.categoria,
+    tmdbId: conteudo.tmdbId,
+    imdbId: conteudo.imdbId,
+    idInterno,
+    conteudoId: idInterno,
+  });
+  const { progresso } = useProgressoConteudo(idInterno);
   const { alternar } = useMinhaLista();
 
   function aoAlternarLista() {
     alternar({
-      conteudoId: conteudo.id,
+      conteudoId: idInterno,
+      idInterno,
       categoria: conteudo.categoria,
+      tmdbId: conteudo.tmdbId,
+      imdbId: conteudo.imdbId,
       titulo: conteudo.titulo,
       posterUrl: conteudo.posterUrl,
       ano: conteudo.ano,
@@ -135,7 +146,7 @@ export function ConteudoDetalheClient({
 
             <div className="mt-7 flex flex-wrap gap-3">
               <Button variant="accent" size="lg" asChild>
-                <Link href={`/player/${conteudo.id}`}>
+                <Link href={hrefPlayer(conteudo, progresso?.temporadaNumero, progresso?.episodioNumero)}>
                   <Play className="h-5 w-5 fill-current" />
                   {progresso && progresso.tempoAtualSegundos >= 15
                     ? `Continuar · ${formatarTimestamp(progresso.tempoAtualSegundos)}`
@@ -164,7 +175,10 @@ export function ConteudoDetalheClient({
         {conteudo.temporadas && conteudo.temporadas.length > 0 && (
           <div className="mt-14">
             <ListaTemporadas
-              conteudoId={conteudo.id}
+              conteudoId={idInterno}
+              categoria={conteudo.categoria}
+              tmdbId={conteudo.tmdbId}
+              imdbId={conteudo.imdbId}
               temporadas={conteudo.temporadas}
             />
           </div>
@@ -172,13 +186,12 @@ export function ConteudoDetalheClient({
 
         <div className="mt-10 max-w-md">
           <BotaoWatchParty
-            conteudoId={conteudo.id}
+            conteudoId={idInterno}
+            categoria={conteudo.categoria}
+            tmdbId={conteudo.tmdbId}
+            imdbId={conteudo.imdbId}
             titulo={conteudo.titulo}
-            ehSerie={
-              conteudo.categoria === "serie" ||
-              conteudo.categoria === "anime" ||
-              conteudo.categoria === "dorama"
-            }
+            ehSerie={ehSerieLike(conteudo.categoria)}
           />
         </div>
 

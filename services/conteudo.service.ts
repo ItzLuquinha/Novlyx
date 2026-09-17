@@ -6,31 +6,95 @@ import { getSeriePorId } from "./series.service";
 import { getAnimePorId } from "./animes.service";
 import { getDoramaPorId } from "./doramas.service";
 import {
-  EmbedListResponse, EMPTY_EMBED_LIST,
+  EmbedListResponse,
+  EMPTY_EMBED_LIST,
   mapearListaPaginada,
 } from "@/lib/adapters/2embed";
+import {
+  chaveEstavel,
+  ehCategoriaValida,
+  idsParaConsulta,
+  parseIdInterno,
+} from "@/lib/identidade";
 
-export async function getConteudoPorId(
+export async function getConteudoPorCategoria(
+  categoria: CategoriaConteudo,
   id: string
+): Promise<ConteudoDetalhado | null> {
+  if (!id || id.startsWith("tmp-")) return null;
+  if (!API_HABILITADA) return null;
+
+  switch (categoria) {
+    case "filme":
+      return getFilmePorId(id);
+    case "serie":
+      return getSeriePorId(id);
+    case "anime":
+      return getAnimePorId(id);
+    case "dorama":
+      return getDoramaPorId(id);
+    default:
+      return null;
+  }
+}
+
+/**
+ * Resolução legada sem categoria na URL.
+ * - idInterno (categoria:tmdb:123) → categoria explícita
+ * - IMDb: tenta filme e série em sequência; se ambos existem, recusa (ambíguo)
+ * - TMDB numérico: idem (filme e série podem colidir)
+ * Prefira sempre getConteudoPorCategoria nas rotas novas.
+ */
+export async function getConteudoPorId(
+  id: string,
+  categoria?: CategoriaConteudo
 ): Promise<ConteudoDetalhado | null> {
   const idLimpo = decodeURIComponent(id).trim();
   if (!idLimpo || idLimpo.startsWith("tmp-")) return null;
   if (!API_HABILITADA) return null;
 
-  const [filme, serie] = await Promise.all([
-    getFilmePorId(idLimpo).catch(() => null),
-    getSeriePorId(idLimpo).catch(() => null),
-  ]);
+  if (categoria && ehCategoriaValida(categoria)) {
+    return getConteudoPorCategoria(categoria, idLimpo);
+  }
 
+  const parsed = parseIdInterno(idLimpo);
+  if (parsed) {
+    return getConteudoPorCategoria(parsed.categoria, idLimpo);
+  }
+
+  const ids = idsParaConsulta(idLimpo);
+  if (!ids.imdbId && !ids.tmdbId) return null;
+
+  const filme = await getFilmePorId(idLimpo).catch(() => null);
+  const serie = await getSeriePorId(idLimpo).catch(() => null);
+
+  if (filme && serie) {
+    // Colisão TMDB/IMDb filme vs série — exige categoria na URL
+    console.warn(
+      "[getConteudoPorId] ambíguo filme+série para",
+      idLimpo,
+      "— use /conteudo/{categoria}/{id}"
+    );
+    return null;
+  }
   if (filme) return filme;
   if (serie) return serie;
 
-  const [anime, dorama] = await Promise.all([
-    getAnimePorId(idLimpo).catch(() => null),
-    getDoramaPorId(idLimpo).catch(() => null),
-  ]);
+  const anime = await getAnimePorId(idLimpo).catch(() => null);
+  if (anime) return anime;
+  return getDoramaPorId(idLimpo).catch(() => null);
+}
 
-  return anime ?? dorama ?? null;
+function deduporCategoria(itens: ConteudoResumo[]): ConteudoResumo[] {
+  const visto = new Set<string>();
+  const out: ConteudoResumo[] = [];
+  for (const item of itens) {
+    const chave = chaveEstavel(item);
+    if (visto.has(chave)) continue;
+    visto.add(chave);
+    out.push(item);
+  }
+  return out;
 }
 
 async function trendingFilmes(limite: number): Promise<ConteudoResumo[]> {
@@ -49,19 +113,15 @@ async function trendingSeries(limite: number): Promise<ConteudoResumo[]> {
 
 async function mixTrending(limite: number): Promise<ConteudoResumo[]> {
   const [filmes, series] = await Promise.all([
-    trendingFilmes(Math.ceil(limite / 2) + 5).catch(() => [] as ConteudoResumo[]),
-    trendingSeries(Math.ceil(limite / 2) + 5).catch(() => [] as ConteudoResumo[]),
+    trendingFilmes(Math.ceil(limite / 2) + 5).catch(
+      () => [] as ConteudoResumo[]
+    ),
+    trendingSeries(Math.ceil(limite / 2) + 5).catch(
+      () => [] as ConteudoResumo[]
+    ),
   ]);
   const mix = [...filmes, ...series].sort((a, b) => b.nota - a.nota);
-  const visto = new Set<string>();
-  const unicos: ConteudoResumo[] = [];
-  for (const item of mix) {
-    if (!visto.has(item.id)) {
-      visto.add(item.id);
-      unicos.push(item);
-    }
-  }
-  return unicos.slice(0, limite);
+  return deduporCategoria(mix).slice(0, limite);
 }
 
 export async function getEmAlta(limite = 20): Promise<ConteudoResumo[]> {
@@ -158,7 +218,13 @@ export async function getDestaquesBanner(
 export async function getTrendingBR(limite = 20): Promise<ConteudoResumo[]> {
   if (!API_HABILITADA) return [];
   try {
-    const termos = ["brasileiro", "cinema nacional", "globo", "netflix brasil", "série brasileira"];
+    const termos = [
+      "brasileiro",
+      "cinema nacional",
+      "globo",
+      "netflix brasil",
+      "série brasileira",
+    ];
     const termo = termos[Math.floor(Math.random() * termos.length)]!;
     const [busca, trending] = await Promise.all([
       httpClient<EmbedListResponse>(API_ROTAS.buscaFilmes, {
@@ -170,21 +236,12 @@ export async function getTrendingBR(limite = 20): Promise<ConteudoResumo[]> {
     ]);
     const a = mapearListaPaginada(busca as EmbedListResponse, "filme").itens;
     const b = mapearListaPaginada(trending as EmbedListResponse, "filme").itens;
-    
     const mix = [...a, ...b].sort((x, y) => {
       const xp = x.idiomaOriginal?.startsWith("pt") ? 1 : 0;
       const yp = y.idiomaOriginal?.startsWith("pt") ? 1 : 0;
       return yp - xp || y.nota - x.nota;
     });
-    const visto = new Set<string>();
-    const out: ConteudoResumo[] = [];
-    for (const item of mix) {
-      if (!visto.has(item.id)) {
-        visto.add(item.id);
-        out.push(item);
-      }
-    }
-    return out.slice(0, limite);
+    return deduporCategoria(mix).slice(0, limite);
   } catch (e) {
     console.error("[getTrendingBR]", e);
     return [];

@@ -10,6 +10,7 @@ import {
 import { getContinuarAssistindo } from "@/services/continuar-assistindo.service";
 import { getRecomendacoesPorHistorico } from "@/services/recomendacoes.service";
 import { ConteudoResumo } from "@/types";
+import { hrefConteudoDeIds } from "@/lib/identidade";
 
 export function FileiraPorqueVoceViu() {
   const [base, setBase] = useState<{
@@ -84,7 +85,7 @@ export function FileiraPorqueVoceViu() {
       <p className="px-1 text-[11px] text-white/30">
         Baseado no que você assistiu por último ·{" "}
         <Link
-          href={`/conteudo/${base.conteudoId}`}
+          href={hrefConteudoDeIds(base.categoria, base.conteudoId)}
           className="text-novlyx-accent/70 hover:underline"
         >
           ver original

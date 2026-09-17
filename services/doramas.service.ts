@@ -8,11 +8,13 @@ import { httpClient } from "@/lib/http-client";
 import { API_HABILITADA, API_ROTAS } from "@/lib/api-config";
 import {
   EmbedItem,
-  EmbedListResponse, EMPTY_EMBED_LIST,
+  EmbedListResponse,
+  EMPTY_EMBED_LIST,
   mapearDetalhe,
   mapearListaPaginada,
 } from "@/lib/adapters/2embed";
 import { filtrarDoramas } from "@/lib/adapters/filtros-categoria";
+import { idsParaConsulta } from "@/lib/identidade";
 
 const VAZIO: ResultadoPaginado<ConteudoResumo> = {
   itens: [],
@@ -65,9 +67,9 @@ export async function getDoramas(
               );
             });
 
-      const ids = new Set(itens.map((i) => i.imdb_id || i.tmdb_id));
+      const ids = new Set(itens.map((i) => i.imdb_id || String(i.tmdb_id || "")));
       for (const item of pool) {
-        const key = item.imdb_id || item.tmdb_id;
+        const key = item.imdb_id || String(item.tmdb_id || "");
         if (key && !ids.has(key)) {
           ids.add(key);
           itens.push(item);
@@ -94,10 +96,12 @@ export async function getDoramaPorId(
   id: string
 ): Promise<ConteudoDetalhado | null> {
   if (!API_HABILITADA) return null;
+  const ids = idsParaConsulta(id);
+  if (!ids.imdbId && !ids.tmdbId) return null;
   try {
-    const rota = id.startsWith("tt")
-      ? API_ROTAS.seriePorImdb(id)
-      : API_ROTAS.seriePorTmdb(id);
+    const rota = ids.imdbId
+      ? API_ROTAS.seriePorImdb(ids.imdbId)
+      : API_ROTAS.seriePorTmdb(ids.tmdbId!);
     const item = await httpClient<EmbedItem>(rota);
     if (!item || (!item.name && !item.tmdb_id && !item.imdb_id)) return null;
     return mapearDetalhe(item, "dorama");

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ImagemPlaceholder as Image } from "@/components/shared/imagem-placeholder";
 import Link from "next/link";
+import { chaveEstavel, hrefConteudo } from "@/lib/identidade";
 import { Search, X, Loader2, Heart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useBusca } from "@/hooks/use-busca";
@@ -121,9 +122,9 @@ export function BuscaInstantanea() {
             {!ehMaite && !isLoading && temResultados && (
               <ul className="max-h-96 overflow-y-auto py-2">
                 {todosItens.map((item) => (
-                  <li key={item.id}>
+                  <li key={chaveEstavel(item)}>
                     <Link
-                      href={`/conteudo/${item.id}`}
+                      href={hrefConteudo(item)}
                       onClick={() => setAberta(false)}
                       className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-white/5"
                     >

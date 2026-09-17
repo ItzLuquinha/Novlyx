@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Play, Clock } from "lucide-react";
-import { Temporada } from "@/types";
+import { CategoriaConteudo, Temporada } from "@/types";
+import { hrefPlayer } from "@/lib/identidade";
 import {
   Select,
   SelectContent,
@@ -16,10 +17,13 @@ import { formatarDuracao } from "@/utils/formatadores";
 
 interface ListaTemporadasProps {
   conteudoId: string;
+  categoria: CategoriaConteudo;
+  tmdbId?: string;
+  imdbId?: string;
   temporadas: Temporada[];
 }
 
-export function ListaTemporadas({ conteudoId, temporadas }: ListaTemporadasProps) {
+export function ListaTemporadas({ conteudoId, categoria, tmdbId, imdbId, temporadas }: ListaTemporadasProps) {
   const [temporadaId, setTemporadaId] = useState(temporadas[0]?.id ?? "");
   const temporada = temporadas.find((t) => t.id === temporadaId) ?? temporadas[0];
 
@@ -49,7 +53,7 @@ export function ListaTemporadas({ conteudoId, temporadas }: ListaTemporadasProps
         {temporada.episodios.map((episodio) => (
           <Link
             key={episodio.id}
-            href={`/player/${conteudoId}?temporada=${temporada.id}&episodio=${episodio.id}`}
+            href={hrefPlayer({ categoria, tmdbId, imdbId, idInterno: conteudoId, id: conteudoId }, temporada.numero, episodio.numero)}
             className="group flex gap-4 rounded-lg border border-white/10 bg-novlyx-graphite p-3 transition-colors hover:border-novlyx-accent/40 hover:bg-novlyx-graphite-light"
           >
             <div className="relative aspect-video w-32 shrink-0 overflow-hidden rounded-md bg-novlyx-graphite-light sm:w-44">

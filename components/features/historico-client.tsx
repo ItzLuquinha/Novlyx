@@ -11,6 +11,7 @@ import {
 } from "@/services/historico.service";
 import { ImagemPlaceholder as Image } from "@/components/shared/imagem-placeholder";
 import { Button } from "@/components/ui/button";
+import { hrefPlayerDeIds } from "@/lib/identidade";
 import { formatarTimestamp } from "@/utils/tempo-assistido";
 
 export function HistoricoClient() {
@@ -90,8 +91,8 @@ export function HistoricoClient() {
       <div className="space-y-2">
         {itens.map((item) => (
           <Link
-            key={`${item.conteudoId}-${item.assistidoEm}`}
-            href={`/player/${item.conteudoId}`}
+            key={`${item.historicoKey || item.conteudoId}-${item.assistidoEm}`}
+            href={hrefPlayerDeIds(item.categoria, item.idInterno || item.conteudoId, item.temporadaNumero, item.episodioNumero)}
             className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.02] p-2.5 transition-colors hover:border-white/15 hover:bg-white/[0.04]"
           >
             <div className="relative h-16 w-12 shrink-0 overflow-hidden rounded-md bg-novlyx-graphite">

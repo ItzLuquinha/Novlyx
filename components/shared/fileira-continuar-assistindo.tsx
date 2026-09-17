@@ -6,6 +6,7 @@ import { Trash2 } from "lucide-react";
 import { ImagemPlaceholder as Image } from "@/components/shared/imagem-placeholder";
 import { useContinuarAssistindo } from "@/hooks/use-continuar-assistindo";
 import { Button } from "@/components/ui/button";
+import { hrefPlayerDeIds } from "@/lib/identidade";
 import {
   formatarTimestamp,
   percentualProgresso,
@@ -70,8 +71,8 @@ export function FileiraContinuarAssistindo() {
 
           return (
             <Link
-              key={item.conteudoId}
-              href={`/player/${item.conteudoId}`}
+              key={item.progressKey || item.conteudoId}
+              href={hrefPlayerDeIds(item.categoria, item.idInterno || item.conteudoId, item.temporadaNumero, item.episodioNumero)}
               className="group w-[160px] shrink-0 sm:w-[200px]"
             >
               <div className="relative aspect-video overflow-hidden rounded-md bg-novlyx-graphite-light">

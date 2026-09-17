@@ -8,11 +8,12 @@ import { httpClient } from "@/lib/http-client";
 import { API_HABILITADA, API_ROTAS } from "@/lib/api-config";
 import {
   EmbedItem,
-  EmbedListResponse, EMPTY_EMBED_LIST,
+  EmbedListResponse,
   mapearDetalhe,
   mapearListaPaginada,
 } from "@/lib/adapters/2embed";
 import { filtrarFilmes } from "@/lib/adapters/filtros-categoria";
+import { idsParaConsulta } from "@/lib/identidade";
 
 const VAZIO: ResultadoPaginado<ConteudoResumo> = {
   itens: [],
@@ -60,7 +61,10 @@ export async function getFilmes(
     const filtrados = filtrarFilmes(data.results ?? []);
     let resultado = mapearListaPaginada({ ...data, results: filtrados }, "filme");
 
-    if (parametros.ordenarPor === "melhorAvaliados" || parametros.ordenarPor === "populares") {
+    if (
+      parametros.ordenarPor === "melhorAvaliados" ||
+      parametros.ordenarPor === "populares"
+    ) {
       resultado = {
         ...resultado,
         itens: [...resultado.itens].sort((a, b) => b.nota - a.nota),
@@ -90,11 +94,12 @@ export async function getFilmePorId(
   id: string
 ): Promise<ConteudoDetalhado | null> {
   if (!API_HABILITADA) return null;
+  const ids = idsParaConsulta(id);
+  if (!ids.imdbId && !ids.tmdbId) return null;
   try {
-    const rota = id.startsWith("tt")
-      ? API_ROTAS.filmePorImdb(id)
-      : API_ROTAS.filmePorTmdb(id);
-
+    const rota = ids.imdbId
+      ? API_ROTAS.filmePorImdb(ids.imdbId)
+      : API_ROTAS.filmePorTmdb(ids.tmdbId!);
     const item = await httpClient<EmbedItem>(rota);
     if (!item || (!item.title && !item.tmdb_id && !item.imdb_id)) {
       return null;

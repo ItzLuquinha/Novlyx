@@ -13,6 +13,7 @@ import {
 } from "@/utils/tempo-assistido";
 import { useEffect, useState } from "react";
 import { ProgressoContinuarAssistindo } from "@/types";
+import { chaveEstavel, hrefConteudoDeIds, hrefPlayerDeIds } from "@/lib/identidade";
 import { EVENTO_PROGRESSO } from "@/services/continuar-assistindo.service";
 
 export function MinhaListaClient() {
@@ -77,11 +78,11 @@ export function MinhaListaClient() {
 
             return (
               <Link
-                key={item.conteudoId}
+                key={chaveEstavel(item)}
                 href={
                   prog && prog.tempoAtualSegundos >= 15
-                    ? `/player/${item.conteudoId}`
-                    : `/conteudo/${item.conteudoId}`
+                    ? hrefPlayerDeIds(item.categoria, item.idInterno || item.conteudoId, prog.temporadaNumero, prog.episodioNumero)
+                    : hrefConteudoDeIds(item.categoria, item.idInterno || item.conteudoId)
                 }
                 className="group"
               >

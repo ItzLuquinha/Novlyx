@@ -3,6 +3,7 @@
 import { ImagemPlaceholder as Image } from "@/components/shared/imagem-placeholder";
 import Link from "next/link";
 import { ConteudoResumo } from "@/types";
+import { chaveEstavel, hrefConteudo } from "@/lib/identidade";
 import { useEstaNaMinhaLista, useMinhaLista } from "@/hooks/use-minha-lista";
 import { cn } from "@/lib/utils";
 
@@ -12,15 +13,25 @@ interface CardConteudoProps {
 }
 
 export function CardConteudo({ conteudo, prioridade = false }: CardConteudoProps) {
-  const { presente, atualizar } = useEstaNaMinhaLista(conteudo.id);
+  const chave = chaveEstavel(conteudo);
+  const { presente, atualizar } = useEstaNaMinhaLista({
+    categoria: conteudo.categoria,
+    tmdbId: conteudo.tmdbId,
+    imdbId: conteudo.imdbId,
+    idInterno: conteudo.idInterno || conteudo.id,
+    conteudoId: conteudo.idInterno || conteudo.id,
+  });
   const { alternar } = useMinhaLista();
 
   function aoAlternarLista(evento: React.MouseEvent) {
     evento.preventDefault();
     evento.stopPropagation();
     alternar({
-      conteudoId: conteudo.id,
+      conteudoId: conteudo.idInterno || conteudo.id,
+      idInterno: conteudo.idInterno || conteudo.id,
       categoria: conteudo.categoria,
+      tmdbId: conteudo.tmdbId,
+      imdbId: conteudo.imdbId,
       titulo: conteudo.titulo,
       posterUrl: conteudo.posterUrl,
       ano: conteudo.ano,
@@ -31,7 +42,7 @@ export function CardConteudo({ conteudo, prioridade = false }: CardConteudoProps
 
   return (
     <div className="group relative w-[140px] shrink-0 sm:w-[168px]">
-      <Link href={`/conteudo/${conteudo.id}`} className="block">
+      <Link href={hrefConteudo(conteudo)} className="block">
         <div className="relative aspect-[2/3] overflow-hidden rounded-lg bg-novlyx-graphite-light">
           <Image
             src={conteudo.posterUrl}

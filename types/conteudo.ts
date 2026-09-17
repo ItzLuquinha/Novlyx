@@ -28,7 +28,11 @@ export interface Temporada {
 }
 
 export interface ConteudoResumo {
+  /** Alias de idInterno para compatibilidade. Nao e TMDB nem IMDb. */
   id: string;
+  idInterno: string;
+  tmdbId?: string;
+  imdbId?: string;
   titulo: string;
   tituloOriginal?: string;
   categoria: CategoriaConteudo;
@@ -38,11 +42,8 @@ export interface ConteudoResumo {
   posterUrl: string;
   bannerUrl: string;
   generos: Genero[];
-  
   idiomaOriginal?: string;
-  
   statusLancamento?: string;
-  
   emCinema?: boolean;
   emAlta?: boolean;
   lancamento?: boolean;
@@ -64,8 +65,12 @@ export interface ConteudoDetalhado extends ConteudoResumo {
 }
 
 export interface ProgressoContinuarAssistindo {
+  progressKey: string;
   conteudoId: string;
+  idInterno: string;
   categoria: CategoriaConteudo;
+  tmdbId?: string;
+  imdbId?: string;
   titulo: string;
   posterUrl: string;
   temporadaId?: string;
@@ -79,7 +84,10 @@ export interface ProgressoContinuarAssistindo {
 
 export interface ItemMinhaLista {
   conteudoId: string;
+  idInterno: string;
   categoria: CategoriaConteudo;
+  tmdbId?: string;
+  imdbId?: string;
   titulo: string;
   posterUrl: string;
   ano: number;

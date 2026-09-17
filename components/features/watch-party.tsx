@@ -4,9 +4,14 @@ import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Users, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { CategoriaConteudo } from "@/types";
+import { hrefPlayer } from "@/lib/identidade";
 
 interface WatchPartyProps {
   conteudoId: string;
+  categoria: CategoriaConteudo;
+  tmdbId?: string;
+  imdbId?: string;
   titulo: string;
   season?: number;
   episode?: number;
@@ -14,7 +19,6 @@ interface WatchPartyProps {
 }
 
 export function WatchPartyBanner({
-  conteudoId,
   titulo,
   season = 1,
   episode = 1,
@@ -44,6 +48,9 @@ export function WatchPartyBanner({
 
 export function BotaoWatchParty({
   conteudoId,
+  categoria,
+  tmdbId,
+  imdbId,
   titulo,
   season = 1,
   episode = 1,
@@ -54,7 +61,12 @@ export function BotaoWatchParty({
 
   const link = useMemo(() => {
     if (typeof window === "undefined") return "";
-    const u = new URL(`/player/${conteudoId}`, window.location.origin);
+    const path = hrefPlayer(
+      { categoria, tmdbId, imdbId, idInterno: conteudoId, id: conteudoId },
+      ehSerie ? season : undefined,
+      ehSerie ? episode : undefined
+    );
+    const u = new URL(path, window.location.origin);
     u.searchParams.set("wp", "1");
     u.searchParams.set("host", nome.slice(0, 20) || "amigo");
     if (ehSerie) {
@@ -64,7 +76,7 @@ export function BotaoWatchParty({
       u.searchParams.set("episodio", String(episode));
     }
     return u.toString();
-  }, [conteudoId, nome, season, episode, ehSerie]);
+  }, [conteudoId, categoria, tmdbId, imdbId, nome, season, episode, ehSerie]);
 
   async function copiar() {
     try {
@@ -72,7 +84,7 @@ export function BotaoWatchParty({
       setCopiado(true);
       setTimeout(() => setCopiado(false), 2000);
     } catch {
-      
+      /* ignore */
     }
   }
 
@@ -80,7 +92,7 @@ export function BotaoWatchParty({
     <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
       <p className="text-xs font-medium text-white/70">Watch party</p>
       <p className="mt-1 text-[11px] text-white/40">
-        Gera um link com o episódio. Quem abrir vê o mesmo ponto combinado.
+        Gera um link com o episódio atual. Quem abrir vê o mesmo ponto combinado.
       </p>
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <input
