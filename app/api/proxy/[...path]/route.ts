@@ -56,10 +56,13 @@ function querySegura(searchParams: URLSearchParams): string {
 
 function cachePara(caminho: string): string {
   if (caminho === "movie" || caminho === "tv") {
-    return "public, s-maxage=30, stale-while-revalidate=120";
-  }
-  if (caminho.startsWith("search") || caminho.startsWith("trending")) {
     return "public, s-maxage=60, stale-while-revalidate=300";
+  }
+  if (caminho.startsWith("trending")) {
+    return "public, s-maxage=300, stale-while-revalidate=900";
+  }
+  if (caminho.startsWith("search")) {
+    return "public, s-maxage=120, stale-while-revalidate=600";
   }
   return "no-store";
 }

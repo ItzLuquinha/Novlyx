@@ -97,31 +97,115 @@ function deduporCategoria(itens: ConteudoResumo[]): ConteudoResumo[] {
   return out;
 }
 
-async function trendingFilmes(limite: number): Promise<ConteudoResumo[]> {
-  const data = await httpClient<EmbedListResponse>(API_ROTAS.filmesTrending, {
-    parametros: { time_window: "week", page: 1 },
-  });
-  return mapearListaPaginada(data, "filme").itens.slice(0, limite);
+/** Cache em memoria (cliente/servidor) para nao repetir o mesmo trending na mesma sessao. */
+const cacheListas = new Map<
+  string,
+  { expira: number; dados: ConteudoResumo[] } | { expira: number; pendente: Promise<ConteudoResumo[]> }
+>();
+
+const TTL_TRENDING_MS = 60_000;
+
+async function listaCacheada(
+  chave: string,
+  carregar: () => Promise<ConteudoResumo[]>
+): Promise<ConteudoResumo[]> {
+  const agora = Date.now();
+  const hit = cacheListas.get(chave);
+  if (hit && hit.expira > agora) {
+    if ("dados" in hit) return hit.dados;
+    return hit.pendente;
+  }
+  const pendente = carregar()
+    .then((dados) => {
+      cacheListas.set(chave, { expira: Date.now() + TTL_TRENDING_MS, dados });
+      return dados;
+    })
+    .catch((erro) => {
+      cacheListas.delete(chave);
+      throw erro;
+    });
+  cacheListas.set(chave, { expira: agora + TTL_TRENDING_MS, pendente });
+  return pendente;
 }
 
-async function trendingSeries(limite: number): Promise<ConteudoResumo[]> {
-  const data = await httpClient<EmbedListResponse>(API_ROTAS.seriesTrending, {
-    parametros: { time_window: "week", page: 1 },
+async function trendingFilmes(
+  limite: number,
+  timeWindow: "day" | "week" = "week",
+  page = 1
+): Promise<ConteudoResumo[]> {
+  const chave = `filmes:${timeWindow}:${page}`;
+  const todos = await listaCacheada(chave, async () => {
+    const data = await httpClient<EmbedListResponse>(API_ROTAS.filmesTrending, {
+      parametros: { time_window: timeWindow, page },
+    });
+    return mapearListaPaginada(data, "filme").itens;
   });
-  return mapearListaPaginada(data, "serie").itens.slice(0, limite);
+  return todos.slice(0, limite);
+}
+
+async function trendingSeries(
+  limite: number,
+  timeWindow: "day" | "week" = "week",
+  page = 1
+): Promise<ConteudoResumo[]> {
+  const chave = `series:${timeWindow}:${page}`;
+  const todos = await listaCacheada(chave, async () => {
+    const data = await httpClient<EmbedListResponse>(API_ROTAS.seriesTrending, {
+      parametros: { time_window: timeWindow, page },
+    });
+    return mapearListaPaginada(data, "serie").itens;
+  });
+  return todos.slice(0, limite);
 }
 
 async function mixTrending(limite: number): Promise<ConteudoResumo[]> {
+  const metade = Math.ceil(limite / 2) + 5;
   const [filmes, series] = await Promise.all([
-    trendingFilmes(Math.ceil(limite / 2) + 5).catch(
-      () => [] as ConteudoResumo[]
-    ),
-    trendingSeries(Math.ceil(limite / 2) + 5).catch(
-      () => [] as ConteudoResumo[]
-    ),
+    trendingFilmes(metade, "week", 1).catch(() => [] as ConteudoResumo[]),
+    trendingSeries(metade, "week", 1).catch(() => [] as ConteudoResumo[]),
   ]);
   const mix = [...filmes, ...series].sort((a, b) => b.nota - a.nota);
   return deduporCategoria(mix).slice(0, limite);
+}
+
+/** Uma unica ida a API para banner + em alta + populares. */
+export async function getHomePrioridade(limite = 20): Promise<{
+  destaques: ConteudoResumo[];
+  emAlta: ConteudoResumo[];
+  populares: ConteudoResumo[];
+}> {
+  if (!API_HABILITADA) {
+    return { destaques: [], emAlta: [], populares: [] };
+  }
+  try {
+    const mix = await mixTrending(Math.max(limite, 24));
+    return {
+      destaques: mix.slice(0, 6),
+      emAlta: mix.slice(0, limite),
+      populares: [...mix].sort((a, b) => b.nota - a.nota).slice(0, limite),
+    };
+  } catch (e) {
+    console.error("[getHomePrioridade]", e);
+    return { destaques: [], emAlta: [], populares: [] };
+  }
+}
+
+/** Fileiras abaixo da dobra (ainda deduplicadas via cache). */
+export async function getHomeSecundaria(limite = 20): Promise<{
+  trendingBR: ConteudoResumo[];
+  lancamentosSemana: ConteudoResumo[];
+  lancamentos: ConteudoResumo[];
+}> {
+  if (!API_HABILITADA) {
+    return { trendingBR: [], lancamentosSemana: [], lancamentos: [] };
+  }
+  const vazio: ConteudoResumo[] = [];
+  const [trendingBR, lancamentosSemana, lancamentos] = await Promise.all([
+    getTrendingBR(limite).catch(() => vazio),
+    getLancamentosDaSemana(limite).catch(() => vazio),
+    getLancamentos(limite).catch(() => vazio),
+  ]);
+  return { trendingBR, lancamentosSemana, lancamentos };
 }
 
 export async function getEmAlta(limite = 20): Promise<ConteudoResumo[]> {
@@ -137,10 +221,7 @@ export async function getEmAlta(limite = 20): Promise<ConteudoResumo[]> {
 export async function getLancamentos(limite = 20): Promise<ConteudoResumo[]> {
   if (!API_HABILITADA) return [];
   try {
-    const data = await httpClient<EmbedListResponse>(API_ROTAS.filmesTrending, {
-      parametros: { time_window: "day", page: 1 },
-    });
-    return mapearListaPaginada(data, "filme").itens.slice(0, limite);
+    return await trendingFilmes(limite, "day", 1);
   } catch (e) {
     console.error("[getLancamentos]", e);
     return [];
@@ -160,10 +241,7 @@ export async function getMaisPopulares(limite = 20): Promise<ConteudoResumo[]> {
 export async function getRecomendados(limite = 20): Promise<ConteudoResumo[]> {
   if (!API_HABILITADA) return [];
   try {
-    const data = await httpClient<EmbedListResponse>(API_ROTAS.filmesTrending, {
-      parametros: { time_window: "week", page: 2 },
-    });
-    return mapearListaPaginada(data, "filme").itens.slice(0, limite);
+    return await trendingFilmes(limite, "week", 2);
   } catch (e) {
     console.error("[getRecomendados]", e);
     return [];
@@ -175,10 +253,7 @@ export async function getAdicionadosRecentemente(
 ): Promise<ConteudoResumo[]> {
   if (!API_HABILITADA) return [];
   try {
-    const data = await httpClient<EmbedListResponse>(API_ROTAS.filmesTrending, {
-      parametros: { time_window: "day", page: 1 },
-    });
-    return mapearListaPaginada(data, "filme").itens.slice(0, limite);
+    return await trendingFilmes(limite, "day", 1);
   } catch (e) {
     console.error("[getAdicionadosRecentemente]", e);
     return [];
@@ -196,7 +271,7 @@ export async function getPorGenero(
     });
     const itens = mapearListaPaginada(data, "filme").itens;
     if (itens.length > 0) return itens.slice(0, limite);
-    return await trendingFilmes(limite);
+    return await trendingFilmes(limite, "week", 1);
   } catch (e) {
     console.error("[getPorGenero]", e);
     return [];
@@ -223,19 +298,22 @@ export async function getTrendingBR(limite = 20): Promise<ConteudoResumo[]> {
       "cinema nacional",
       "globo",
       "netflix brasil",
-      "série brasileira",
+      "serie brasileira",
     ];
     const termo = termos[Math.floor(Math.random() * termos.length)]!;
     const [busca, trending] = await Promise.all([
       httpClient<EmbedListResponse>(API_ROTAS.buscaFilmes, {
         parametros: { q: termo, page: 1 },
       }).catch(() => EMPTY_EMBED_LIST),
-      httpClient<EmbedListResponse>(API_ROTAS.filmesTrending, {
-        parametros: { time_window: "week", page: 1 },
-      }).catch(() => EMPTY_EMBED_LIST),
+      listaCacheada("filmes:week:1", async () => {
+        const data = await httpClient<EmbedListResponse>(API_ROTAS.filmesTrending, {
+          parametros: { time_window: "week", page: 1 },
+        });
+        return mapearListaPaginada(data, "filme").itens;
+      }).catch(() => [] as ConteudoResumo[]),
     ]);
     const a = mapearListaPaginada(busca as EmbedListResponse, "filme").itens;
-    const b = mapearListaPaginada(trending as EmbedListResponse, "filme").itens;
+    const b = Array.isArray(trending) ? trending : [];
     const mix = [...a, ...b].sort((x, y) => {
       const xp = x.idiomaOriginal?.startsWith("pt") ? 1 : 0;
       const yp = y.idiomaOriginal?.startsWith("pt") ? 1 : 0;
@@ -254,10 +332,7 @@ export async function getLancamentosDaSemana(
   if (!API_HABILITADA) return [];
   try {
     const ano = new Date().getFullYear();
-    const data = await httpClient<EmbedListResponse>(API_ROTAS.filmesTrending, {
-      parametros: { time_window: "day", page: 1 },
-    });
-    let itens = mapearListaPaginada(data, "filme").itens;
+    let itens = await trendingFilmes(40, "day", 1);
     const recentes = itens.filter((i) => i.ano >= ano - 1);
     if (recentes.length >= 6) itens = recentes;
     return itens.slice(0, limite);

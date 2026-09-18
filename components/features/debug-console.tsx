@@ -72,7 +72,8 @@ export function DebugConsole() {
       original.apply(console, args);
     };
 
-    // self-tests
+    // self-tests (somente desenvolvimento — nao competir com a home em producao)
+    if (process.env.NODE_ENV === "production") return;
     (async () => {
       try {
         const r = await fetch("/api/debug/health", { cache: "no-store" });

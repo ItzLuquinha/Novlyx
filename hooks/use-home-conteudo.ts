@@ -1,85 +1,65 @@
 import { useQuery } from "@tanstack/react-query";
-import {
-  getAdicionadosRecentemente,
-  getDestaquesBanner,
-  getEmAlta,
-  getLancamentos,
-  getLancamentosDaSemana,
-  getMaisPopulares,
-  getPorGenero,
-  getRecomendados,
-  getTrendingBR,
-} from "@/services";
+import { getHomePrioridade, getHomeSecundaria } from "@/services";
 import { ConteudoResumo } from "@/types";
 
-async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
-  try {
-    return await fn();
-  } catch (e) {
-    console.error("[home]", e);
-    return fallback;
-  }
-}
+const VAZIO: ConteudoResumo[] = [];
 
+/**
+ * Home em 2 camadas:
+ * 1) prioridade = banner + em alta + populares (1 mix trending)
+ * 2) secundaria = BR + lancamentos (reusa cache de trending quando der)
+ */
 export function useHomeConteudo() {
-  return useQuery({
-    queryKey: ["home-conteudo-v3"],
-    queryFn: async () => {
-      const vazio: ConteudoResumo[] = [];
-
-      
-      const [destaques, emAlta, populares, lancamentos] = await Promise.all([
-        safe(() => getDestaquesBanner(6), vazio),
-        safe(() => getEmAlta(20), vazio),
-        safe(() => getMaisPopulares(20), vazio),
-        safe(() => getLancamentos(20), vazio),
-      ]);
-
-      
-      const [
-        trendingBR,
-        lancamentosSemana,
-        recomendados,
-        recentes,
-      ] = await Promise.all([
-        safe(() => getTrendingBR(20), vazio),
-        safe(() => getLancamentosDaSemana(20), vazio),
-        safe(() => getRecomendados(20), vazio),
-        safe(() => getAdicionadosRecentemente(20), vazio),
-      ]);
-
-      
-      const [acao, drama, comedia, terror, romance, ficcaoCientifica, documentarios] =
-        await Promise.all([
-          safe(() => getPorGenero("acao", 16), vazio),
-          safe(() => getPorGenero("drama", 16), vazio),
-          safe(() => getPorGenero("comedia", 16), vazio),
-          safe(() => getPorGenero("terror", 16), vazio),
-          safe(() => getPorGenero("romance", 16), vazio),
-          safe(() => getPorGenero("ficcao-cientifica", 16), vazio),
-          safe(() => getPorGenero("documentario", 16), vazio),
-        ]);
-
-      return {
-        destaques,
-        emAlta,
-        trendingBR,
-        lancamentosSemana,
-        lancamentos,
-        populares,
-        recomendados,
-        recentes,
-        acao,
-        drama,
-        comedia,
-        terror,
-        romance,
-        ficcaoCientifica,
-        documentarios,
-      };
-    },
+  const prioridade = useQuery({
+    queryKey: ["home-prioridade-v1"],
+    queryFn: () => getHomePrioridade(20),
     staleTime: 1000 * 60 * 5,
     retry: 2,
-    retryDelay: 1500,
+    retryDelay: 1200,
   });
+
+  const secundaria = useQuery({
+    queryKey: ["home-secundaria-v1"],
+    queryFn: () => getHomeSecundaria(20),
+    staleTime: 1000 * 60 * 5,
+    retry: 1,
+    retryDelay: 1500,
+    // comeca logo; nao precisa esperar a prioridade (cache compartilha trending)
+  });
+
+  const data = {
+    destaques: prioridade.data?.destaques ?? VAZIO,
+    emAlta: prioridade.data?.emAlta ?? VAZIO,
+    populares: prioridade.data?.populares ?? VAZIO,
+    trendingBR: secundaria.data?.trendingBR ?? VAZIO,
+    lancamentosSemana: secundaria.data?.lancamentosSemana ?? VAZIO,
+    lancamentos: secundaria.data?.lancamentos ?? VAZIO,
+  };
+
+  const prioridadePronta = Boolean(prioridade.data);
+  const carregandoPrioridade =
+    prioridade.isLoading || (prioridade.isFetching && !prioridade.data);
+  const carregandoSecundaria =
+    secundaria.isLoading || (secundaria.isFetching && !secundaria.data);
+
+  const temAlgo =
+    data.destaques.length > 0 ||
+    data.emAlta.length > 0 ||
+    data.populares.length > 0;
+
+  return {
+    data,
+    /** true so enquanto o bloco de cima ainda nao chegou */
+    carregandoPrioridade,
+    carregandoSecundaria,
+    /** compat: loading geral so no primeiro paint critico */
+    isLoading: carregandoPrioridade,
+    isFetching: prioridade.isFetching || secundaria.isFetching,
+    isError: prioridade.isError && !temAlgo,
+    prioridadePronta,
+    temAlgo,
+    refetch: async () => {
+      await Promise.all([prioridade.refetch(), secundaria.refetch()]);
+    },
+  };
 }
